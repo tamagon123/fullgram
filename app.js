@@ -163,6 +163,7 @@ class ProductCSVGenerator {
         document.getElementById('exportDataBtn').addEventListener('click', () => this.exportDataJson());
 
         document.getElementById('openBrandPicker').addEventListener('click', () => this.openBrandPicker());
+        document.getElementById('openVendorPicker').addEventListener('click', () => this.openBrandPicker());
         document.getElementById('closeBrandPicker').addEventListener('click', () => this.closeBrandPicker());
         document.getElementById('cancelBrandPicker').addEventListener('click', () => this.closeBrandPicker());
         document.getElementById('brandPickerModal').addEventListener('click', (e) => {
@@ -171,6 +172,7 @@ class ProductCSVGenerator {
         document.getElementById('brandSearchInput').addEventListener('input', () => this.filterBrandPicker());
 
         document.getElementById('openCategoryPicker').addEventListener('click', () => this.openCategoryPicker());
+        document.getElementById('openProductTypePicker').addEventListener('click', () => this.openProductTypePicker());
         document.getElementById('closeCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
         document.getElementById('cancelCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
         document.getElementById('categoryPickerModal').addEventListener('click', (e) => {
@@ -188,6 +190,25 @@ class ProductCSVGenerator {
         });
         document.getElementById('tagPickerModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('tagPickerModal')) this.closeTagPicker();
+        });
+
+        document.getElementById('openOption1Picker').addEventListener('click', () => this.openOptionPicker(1));
+        document.getElementById('openOption2Picker').addEventListener('click', () => this.openOptionPicker(2));
+        document.getElementById('openOption3Picker').addEventListener('click', () => this.openOptionPicker(3));
+        document.getElementById('closeSizePicker').addEventListener('click', () => this.closeSizePicker());
+        document.getElementById('cancelSizePicker').addEventListener('click', () => this.closeSizePicker());
+        document.getElementById('applySizesBtn').addEventListener('click', () => this.applySizes());
+        document.getElementById('sizePickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('sizePickerModal')) this.closeSizePicker();
+        });
+        document.querySelectorAll('[data-size-picker-tab]').forEach(tab => {
+            tab.addEventListener('click', () => this.switchSizePickerTab(tab.dataset.sizePickerTab));
+        });
+        document.getElementById('closeColorPicker').addEventListener('click', () => this.closeColorPicker());
+        document.getElementById('cancelColorPicker').addEventListener('click', () => this.closeColorPicker());
+        document.getElementById('applyColorsBtn').addEventListener('click', () => this.applyColors());
+        document.getElementById('colorPickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('colorPickerModal')) this.closeColorPicker();
         });
 
         ['brandCode','skuCategory','skuSerial','productType','option1Values','option2Values','option3Values'].forEach(id => {
@@ -574,6 +595,109 @@ class ProductCSVGenerator {
         alert('JSONファイルをダウンロードしました。data/フォルダ内のJSONファイルを更新してください。');
     }
 
+    openOptionPicker(optionNum) {
+        const name = document.getElementById(`option${optionNum}Name`).value;
+        if (name === 'Size') {
+            this.openSizePicker(`option${optionNum}Values`);
+        } else if (name === 'Color') {
+            this.openColorPicker(`option${optionNum}Values`);
+        } else {
+            alert('Size または Color を選択してください');
+        }
+    }
+
+    openSizePicker(targetInputId) {
+        this.sizePickerTarget = targetInputId;
+        const current = document.getElementById(targetInputId).value.split(',').map(v => v.trim()).filter(v => v);
+        this.tempSelectedSizes = new Set(current);
+        document.getElementById('sizePickerModal').classList.add('active');
+        this.switchSizePickerTab('shoes');
+        this.renderSizeCheckboxes();
+    }
+
+    closeSizePicker() {
+        document.getElementById('sizePickerModal').classList.remove('active');
+        this.tempSelectedSizes.clear();
+    }
+
+    switchSizePickerTab(type) {
+        document.querySelectorAll('[data-size-picker-tab]').forEach(t => t.classList.toggle('active', t.dataset.sizePickerTab === type));
+        document.querySelectorAll('.size-picker-panel').forEach(p => p.style.display = p.id === `sizePicker-${type}` ? 'block' : 'none');
+        this.currentSizePickerTab = type;
+    }
+
+    renderSizeCheckboxes() {
+        const render = (containerId, data) => {
+            const container = document.getElementById(containerId);
+            const entries = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+            container.innerHTML = entries.map(([name, info]) => {
+                const extra = [];
+                if (info.uk) extra.push(`UK: ${info.uk}`);
+                if (info.us) extra.push(`US: ${info.us}`);
+                const extraStr = extra.length ? ` (${extra.join(' / ')})` : '';
+                return `<label class="tag-checkbox-label"><input type="checkbox" value="${this.escapeHtml(name)}" ${this.tempSelectedSizes.has(name) ? 'checked' : ''}><span>${this.escapeHtml(name)}${extraStr}</span></label>`;
+            }).join('');
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    if (e.target.checked) this.tempSelectedSizes.add(e.target.value);
+                    else this.tempSelectedSizes.delete(e.target.value);
+                });
+            });
+        };
+        render('sizeCheckboxes-shoes', this.dataSizes.shoes);
+        render('sizeCheckboxes-clothing', this.dataSizes.clothing);
+        render('sizeCheckboxes-other', this.dataSizes.other);
+    }
+
+    applySizes() {
+        const selected = [...this.tempSelectedSizes].sort((a, b) => {
+            const n1 = parseFloat(a.replace(/[^0-9.]/g, '')) || 0;
+            const n2 = parseFloat(b.replace(/[^0-9.]/g, '')) || 0;
+            if (n1 && n2) return n1 - n2;
+            return a.localeCompare(b);
+        });
+        document.getElementById(this.sizePickerTarget).value = selected.join(', ');
+        this.closeSizePicker();
+        this.renderVariantInventory();
+    }
+
+    openColorPicker(targetInputId) {
+        this.colorPickerTarget = targetInputId;
+        const current = document.getElementById(targetInputId).value.split(',').map(v => v.trim()).filter(v => v);
+        this.tempSelectedColors = new Set(current);
+        document.getElementById('colorPickerModal').classList.add('active');
+        this.renderColorCheckboxes();
+    }
+
+    closeColorPicker() {
+        document.getElementById('colorPickerModal').classList.remove('active');
+        this.tempSelectedColors.clear();
+    }
+
+    renderColorCheckboxes() {
+        const container = document.getElementById('colorCheckboxes');
+        const entries = Object.entries(this.skuMaps.color).sort((a, b) => a[0].localeCompare(b[0]));
+        container.innerHTML = entries.map(([name, code]) => `
+            <label class="tag-checkbox-label">
+                <input type="checkbox" value="${this.escapeHtml(name)}" ${this.tempSelectedColors.has(name) ? 'checked' : ''}>
+                <span>${this.escapeHtml(name)} <span style="color:var(--color-text-muted);font-size:12px;">(${this.escapeHtml(code)})</span></span>
+            </label>
+        `).join('');
+        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                if (e.target.checked) this.tempSelectedColors.add(e.target.value);
+                else this.tempSelectedColors.delete(e.target.value);
+            });
+        });
+    }
+
+    applyColors() {
+        const selected = [...this.tempSelectedColors].sort((a, b) => a.localeCompare(b));
+        document.getElementById(this.colorPickerTarget).value = selected.join(', ');
+        this.closeColorPicker();
+        this.renderVariantInventory();
+    }
+
     openBrandPicker() {
         document.getElementById('brandPickerModal').classList.add('active');
         document.getElementById('brandSearchInput').value = '';
@@ -607,11 +731,21 @@ class ProductCSVGenerator {
     selectBrand(name, code) {
         document.getElementById('brandName').value = name;
         document.getElementById('brandCode').value = code;
+        document.getElementById('vendor').value = name;
         this.updateSkuPreview();
         this.closeBrandPicker();
     }
 
     openCategoryPicker() {
+        this.categoryPickerTarget = 'skuCategory';
+        document.getElementById('categoryPickerModal').classList.add('active');
+        document.getElementById('categorySearchInput').value = '';
+        this.renderCategoryPicker('');
+        document.getElementById('categorySearchInput').focus();
+    }
+
+    openProductTypePicker() {
+        this.categoryPickerTarget = 'productType';
         document.getElementById('categoryPickerModal').classList.add('active');
         document.getElementById('categorySearchInput').value = '';
         this.renderCategoryPicker('');
@@ -642,8 +776,12 @@ class ProductCSVGenerator {
     }
 
     selectCategory(name) {
-        document.getElementById('skuCategory').value = name;
-        this.updateSkuPreview();
+        if (this.categoryPickerTarget === 'productType') {
+            document.getElementById('productType').value = name;
+        } else {
+            document.getElementById('skuCategory').value = name;
+            this.updateSkuPreview();
+        }
         this.closeCategoryPicker();
     }
 

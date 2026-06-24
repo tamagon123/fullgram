@@ -92,28 +92,24 @@
                                 <div class="form-group">
                                     <label for="vendor">
                                         ベンダー (Vendor)
-                                        <span class="help-icon" title="商品のメーカーまたはブランド名。フィルターやコレクションでの絞り込みに使用されます。Shopify上でのブランドページへのリンクにも影響します。例：『FULLGRAM』">?</span>
+                                        <span class="help-icon" title="商品のメーカーまたはブランド名。フィルターやコレクションでの絞り込みに使用されます。Shopify上でのブランドページへのリンクにも影響します。JSONに登録されたブランドからのみ選択できます">?</span>
                                     </label>
-                                    <input type="text" id="vendor" value="Your Brand">
-                                    <span class="help-text">メーカーまたはブランド名</span>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="vendor" value="Your Brand" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openVendorPicker">選択</button>
+                                    </div>
+                                    <span class="help-text">「選択」ボタンからブランドを選んでください</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="productType">
                                         商品タイプ (Type)
-                                        <span class="help-icon" title="商品のカスタム分類（Type）。Shopifyの標準カテゴリーではなく、独自の分類名を自由に設定できます。コレクションの条件フィルタに使用されます。例：『Jacket』『Graphic T-Shirt』">?</span>
+                                        <span class="help-icon" title="商品のカスタム分類（Type）。コレクションの条件フィルタに使用されます。JSONに登録されたカテゴリからのみ選択できます">?</span>
                                     </label>
-                                    <input type="text" id="productType" list="productTypeList">
-                                    <datalist id="productTypeList">
-                                        <option value="T-Shirt">
-                                        <option value="Jacket">
-                                        <option value="Pants">
-                                        <option value="Shoes">
-                                        <option value="Accessory">
-                                        <option value="Digital Product">
-                                        <option value="Book">
-                                        <option value="Perfume">
-                                    </datalist>
-                                    <span class="help-text">商品のカテゴリタイプ</span>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="productType" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openProductTypePicker">選択</button>
+                                    </div>
+                                    <span class="help-text">「選択」ボタンからカテゴリを選んでください</span>
                                 </div>
                             </div>
 
@@ -355,10 +351,13 @@
                                 <div class="form-group">
                                     <label for="option1Values">
                                         オプション1の値（カンマ区切り）
-                                        <span class="help-icon" title="選択したオプションに対する具体的な値をカンマ区切りで入力します。例：Sizeなら『S, M, L, XL』。Colorなら『赤, 黒, ネイビー』。ここで入力した値の組み合わせでバリエーション（SKU）が自動生成されます。値の順序がバリエーションの表示順になります">?</span>
+                                        <span class="help-icon" title="選択したオプションに対する具体的な値。Size/Colorの場合は『選択』ボタンからJSONデータを選んでください">?</span>
                                     </label>
-                                    <input type="text" id="option1Values" placeholder="Small, Medium, Large">
-                                    <span class="help-text">カンマ区切りで複数指定（例：S, M, L）</span>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="option1Values" placeholder="Small, Medium, Large">
+                                        <button type="button" class="btn btn-secondary" id="openOption1Picker">選択</button>
+                                    </div>
+                                    <span class="help-text">Size/Colorは『選択』ボタンから選んでください</span>
                                 </div>
                             </div>
 
@@ -375,7 +374,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="option2Values">オプション2の値（カンマ区切り）</label>
-                                    <input type="text" id="option2Values" placeholder="Red, Green, Blue">
+                                    <div class="tag-input-row">
+                                        <input type="text" id="option2Values" placeholder="Red, Green, Blue">
+                                        <button type="button" class="btn btn-secondary" id="openOption2Picker">選択</button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -392,7 +394,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="option3Values">オプション3の値（カンマ区切り）</label>
-                                    <input type="text" id="option3Values">
+                                    <div class="tag-input-row">
+                                        <input type="text" id="option3Values">
+                                        <button type="button" class="btn btn-secondary" id="openOption3Picker">選択</button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -561,6 +566,53 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelTagPicker">キャンセル</button>
                 <button type="button" class="btn btn-primary" id="applyTagsBtn">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- サイズ選択モーダル -->
+    <div id="sizePickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>サイズを選択</h2>
+                <button class="close-btn" id="closeSizePicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="size-type-tabs" style="margin-bottom:12px;">
+                    <button type="button" class="size-type-tab active" data-size-picker-tab="shoes">靴サイズ</button>
+                    <button type="button" class="size-type-tab" data-size-picker-tab="clothing">服サイズ</button>
+                    <button type="button" class="size-type-tab" data-size-picker-tab="other">その他</button>
+                </div>
+                <div id="sizePicker-shoes" class="size-picker-panel active">
+                    <div id="sizeCheckboxes-shoes" class="tag-checkboxes"></div>
+                </div>
+                <div id="sizePicker-clothing" class="size-picker-panel" style="display:none;">
+                    <div id="sizeCheckboxes-clothing" class="tag-checkboxes"></div>
+                </div>
+                <div id="sizePicker-other" class="size-picker-panel" style="display:none;">
+                    <div id="sizeCheckboxes-other" class="tag-checkboxes"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelSizePicker">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="applySizesBtn">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カラー選択モーダル -->
+    <div id="colorPickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>カラーを選択</h2>
+                <button class="close-btn" id="closeColorPicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="colorCheckboxes" class="tag-checkboxes"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelColorPicker">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="applyColorsBtn">確定</button>
             </div>
         </div>
     </div>
