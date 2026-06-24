@@ -44,6 +44,7 @@ class ProductCSVGenerator {
         ];
         
         this.skuMaps = { category: {}, color: {}, size: {} };
+        this.dataSizes = { shoes: {}, clothing: {}, other: {} };
         this.dataBrands = {};
         this.dataTags = [];
         this.loadData();
@@ -51,7 +52,7 @@ class ProductCSVGenerator {
 
     async loadData() {
         try {
-            const [cat, col, sz, br, tg] = await Promise.all([
+            const [cat, col, szRaw, br, tg] = await Promise.all([
                 fetch('data/categories.json').then(r => r.json()).catch(() => ({})),
                 fetch('data/colors.json').then(r => r.json()).catch(() => ({})),
                 fetch('data/sizes.json').then(r => r.json()).catch(() => ({})),
@@ -60,7 +61,31 @@ class ProductCSVGenerator {
             ]);
             this.skuMaps.category = cat;
             this.skuMaps.color = col;
-            this.skuMaps.size = sz;
+            this.dataSizes = { shoes: {}, clothing: {}, other: {} };
+            this.skuMaps.size = {};
+            if (szRaw.shoes) {
+                Object.entries(szRaw.shoes).forEach(([name, info]) => {
+                    this.dataSizes.shoes[name] = info;
+                    this.skuMaps.size[name] = info.code;
+                });
+            }
+            if (szRaw.clothing) {
+                Object.entries(szRaw.clothing).forEach(([name, info]) => {
+                    this.dataSizes.clothing[name] = info;
+                    this.skuMaps.size[name] = info.code;
+                });
+            }
+            if (!szRaw.shoes && !szRaw.clothing) {
+                Object.entries(szRaw).forEach(([name, info]) => {
+                    if (typeof info === 'string') {
+                        this.skuMaps.size[name] = info;
+                        this.dataSizes.other[name] = { code: info };
+                    } else if (info && info.code) {
+                        this.skuMaps.size[name] = info.code;
+                        this.dataSizes.other[name] = info;
+                    }
+                });
+            }
             this.dataBrands = br;
             this.dataTags = tg.tags || [];
         } catch (e) {
@@ -128,7 +153,6 @@ class ProductCSVGenerator {
         document.getElementById('addBrandBtn').addEventListener('click', () => this.addDataItem('brands'));
         document.getElementById('addCategoryBtn').addEventListener('click', () => this.addDataItem('categories'));
         document.getElementById('addColorBtn').addEventListener('click', () => this.addDataItem('colors'));
-        document.getElementById('addSizeBtn').addEventListener('click', () => this.addDataItem('sizes'));
         document.getElementById('addTagBtn').addEventListener('click', () => this.addDataItem('tags'));
         document.getElementById('exportDataBtn').addEventListener('click', () => this.exportDataJson());
 
