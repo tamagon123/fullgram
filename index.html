@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopify Product CSV Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <div class="login-icon">FG</div>
+            <h2>Shopify Product CSV Generator</h2>
+            <p class="login-subtitle">パスワードを入力してアクセスしてください</p>
+            <div class="login-form">
+                <input type="password" id="loginPassword" placeholder="パスワード">
+                <button id="loginBtn" class="btn btn-primary">ログイン</button>
+            </div>
+            <p id="loginError" class="login-error"></p>
+        </div>
+    </div>
+
+    <div id="appContainer" class="app-container" style="display:none;">
+    <div class="container">
+        <header>
+            <h1>Shopify Product CSV Generator</h1>
+            <p class="subtitle">商品情報を入力してCSVを生成します</p>
+        </header>
+
+        <main>
+            <div class="toolbar">
+                <button id="exportCsv" class="btn btn-success">CSVをダウンロード</button>
+                <button id="loadTemplate" class="btn btn-secondary">テンプレートを読み込み</button>
+                <input type="file" id="templateFile" accept=".csv" style="display:none">
+            </div>
+
+            <div class="sku-maps-toolbar">
+                <button type="button" class="btn btn-secondary" id="toggleSkuMaps">SKUマッピング一覧を表示</button>
+            </div>
+            <div id="skuMapsPanel" class="sku-maps-panel" style="display:none;"></div>
+
+            <div id="productsList" class="products-list">
+                <!-- 商品カードがここに追加されます -->
+            </div>
+        </main>
+
+        <!-- 商品編集モーダル -->
+        <div id="productModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>商品情報の編集</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+                        
+                        <!-- 基本情報セクション -->
+                        <div class="section">
+                            <h3>基本情報</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="title">
+                                        商品名 (Title) <span class="required-mark">*</span>
+                                        <span class="help-icon" title="店舗に表示される商品名。SEOや検索結果にも影響します。例：『スリムフィットデニムジャケット』">?</span>
+                                    </label>
+                                    <input type="text" id="title" required>
+                                    <span class="help-text">店舗に表示される商品名</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="handle">
+                                        URLハンドル (Handle)
+                                        <span class="help-icon" title="商品ページのURLに使用される一意の識別子。半角英数字とハイフンのみ使用可能。例：slim-fit-denim-jacket。変更すると以前のURLは404になり、ブックマークや検索結果に影響する場合があります。空欄の場合、SKUのベース部分（ブランド-シーズン-カテゴリ）が自動設定されます">?</span>
+                                    </label>
+                                    <input type="text" id="handle">
+                                    <span class="help-text">URLに使用される一意の識別子（例：my-product）</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">
+                                    説明 (Description)
+                                    <span class="help-icon" title="商品ページに表示される詳細な説明文。HTMLタグ（h3, ul, strong等）を使用して見やすく整理できます。素材・サイズ感・洗濯方法・注意事項などを記載することで返品を減らせます">?</span>
+                                </label>
+                                <textarea id="description" rows="4"></textarea>
+                                <span class="help-text">商品の詳細な説明（HTML使用可能）</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="vendor">
+                                        ベンダー (Vendor)
+                                        <span class="help-icon" title="商品のメーカーまたはブランド名。フィルターやコレクションでの絞り込みに使用されます。Shopify上でのブランドページへのリンクにも影響します。例：『FULLGRAM』">?</span>
+                                    </label>
+                                    <input type="text" id="vendor" value="Your Brand">
+                                    <span class="help-text">メーカーまたはブランド名</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productType">
+                                        商品タイプ (Type)
+                                        <span class="help-icon" title="商品のカスタム分類（Type）。Shopifyの標準カテゴリーではなく、独自の分類名を自由に設定できます。コレクションの条件フィルタに使用されます。例：『Jacket』『Graphic T-Shirt』">?</span>
+                                    </label>
+                                    <input type="text" id="productType" list="productTypeList">
+                                    <datalist id="productTypeList">
+                                        <option value="T-Shirt">
+                                        <option value="Jacket">
+                                        <option value="Pants">
+                                        <option value="Shoes">
+                                        <option value="Accessory">
+                                        <option value="Digital Product">
+                                        <option value="Book">
+                                        <option value="Perfume">
+                                    </datalist>
+                                    <span class="help-text">商品のカテゴリタイプ</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="shopifyCategory">
+                                        Shopify商品カテゴリ (Product Category)
+                                        <span class="help-icon" title="Shopify公式の標準商品分類体系（Product Category）。税率計算・Facebook/Google連携・分析レポートに影響します。管理画面の言語設定に合わせた階層名を正確に入力してください。例：ファッション・アクセサリー > 衣料品 > アウター > コート・ジャケット。間違った名前は認識されずカテゴリが未設定になります">?</span>
+                                    </label>
+                                    <input type="text" id="shopifyCategory" list="shopifyCategoryList" placeholder="例: ファッション・アクセサリー > 衣料品">
+                                    <datalist id="shopifyCategoryList">
+                                        <option value="ファッション・アクセサリー">
+                                        <option value="ファッション・アクセサリー > 衣料品">
+                                        <option value="ファッション・アクセサリー > 衣料品 > トップス > Tシャツ">
+                                        <option value="ファッション・アクセサリー > 衣料品 > アウター > コート・ジャケット">
+                                        <option value="ファッション・アクセサリー > 衣料品 > パンツ・ショートパンツ > パンツ">
+                                        <option value="ファッション・アクセサリー > 衣料品 > ドレス">
+                                        <option value="ファッション・アクセサリー > 衣料品 > スカート">
+                                        <option value="ファッション・アクセサリー > シューズ">
+                                        <option value="ファッション・アクセサリー > バッグ・財布・ケース">
+                                        <option value="動物・ペット用品">
+                                        <option value="芸術・エンターテイメント">
+                                        <option value="ベビー・幼児">
+                                        <option value="カメラ・光学機器">
+                                        <option value="電子機器">
+                                        <option value="食品・飲料・たばこ">
+                                        <option value="家具">
+                                        <option value="健康・美容">
+                                        <option value="ホーム・ガーデン">
+                                        <option value="旅行・バッグ">
+                                        <option value="メディア">
+                                        <option value="メディア > 書籍 > 電子書籍">
+                                        <option value="オフィス用品">
+                                        <option value="スポーツ用品">
+                                        <option value="おもちゃ・ゲーム">
+                                        <option value="車両・パーツ">
+                                    </datalist>
+                                    <span class="help-text">Shopify Standard Product Taxonomy の正確な階層名を入力してください（確認: <a href="https://shopify.github.io/product-taxonomy/releases/unstable/?categoryId=sg-4-17-2-17" target="_blank">Taxonomyブラウザ</a>）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="googleShoppingCategory">
+                                        Google Shopping カテゴリ
+                                        <span class="help-icon" title="Google Merchant Center / Google Shopping 用の商品カテゴリ。Googleの商品分類体系に基づき、英語の階層名で入力します。広告出稿やGoogle検索での商品表示に影響します。例：Apparel & Accessories > Clothing > Outerwear > Coats & Jackets">?</span>
+                                    </label>
+                                    <select id="googleShoppingCategory">
+                                        <option value="">選択してください</option>
+                                        <option value="Apparel & Accessories > Clothing > Clothing Tops > T-Shirts">Tシャツ</option>
+                                        <option value="Apparel & Accessories > Clothing > Outerwear > Jackets">ジャケット</option>
+                                        <option value="Apparel & Accessories > Clothing > Pants">パンツ</option>
+                                        <option value="Apparel & Accessories > Shoes">シューズ</option>
+                                        <option value="Health & Beauty > Personal Care > Cosmetics > Perfumes & Colognes">香水</option>
+                                        <option value="Media > Books > E-Books">電子書籍</option>
+                                        <option value="Apparel & Accessories > Clothing > Dresses">ドレス</option>
+                                        <option value="Apparel & Accessories > Clothing > Skirts">スカート</option>
+                                        <option value="Apparel & Accessories > Handbags, Wallets & Cases">バッグ</option>
+                                        <option value="Electronics">電子機器</option>
+                                    </select>
+                                    <span class="help-text">Google商品カテゴリの階層構造</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tags">
+                                        タグ (Tags)
+                                        <span class="help-icon" title="商品を整理・検索するためのラベル。カンマ区切りで複数設定可能。コレクションの自動条件やフロントエンドの絞り込みに使用されます。『タグ選択』ボタンで既存タグから選ぶか、新規作成できます。例：新作, メンズ, アウトドア, 春物">?</span>
+                                    </label>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="tags" placeholder="tag1, tag2, tag3" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openTagPicker">タグ選択</button>
+                                    </div>
+                                    <span class="help-text">「タグ選択」ボタンからチェックで選ぶか、新規追加できます</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="status">
+                                        ステータス (Status)
+                                        <span class="help-icon" title="商品の販売状態。Activeは顧客に公開され購入可能。Draftは保存済みだが非公開（編集中や近日発売）。Archivedはアーカイブ済み（販売終了・シーズン終了後など）。CSVエクスポート時に小文字で出力されます">?</span>
+                                    </label>
+                                    <select id="status">
+                                        <option value="active">Active（公開）</option>
+                                        <option value="draft">Draft（下書き）</option>
+                                        <option value="archived">Archived（アーカイブ）</option>
+                                    </select>
+                                    <span class="help-text">商品の公開状態</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="published">
+                                        オンラインストアで公開
+                                        <span class="help-icon" title="オンラインストア（Webサイト）でこの商品を公開するかどうか。『はい』で公開、『いいえ』で非公開（管理画面からのみ閲覧可能）。他の販売チャネル（POS、SNS等）はこの設定と独立して制御されます">?</span>
+                                    </label>
+                                    <select id="published">
+                                        <option value="true">はい (TRUE)</option>
+                                        <option value="false">いいえ (FALSE)</option>
+                                    </select>
+                                    <span class="help-text">オンラインストアでの表示有無</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 価格・在庫セクション -->
+                        <div class="section">
+                            <h3>価格・在庫</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="price">
+                                        価格 (Price) <span class="required-mark">*</span>
+                                        <span class="help-icon" title="顧客への販売価格（税抜き）。チェックアウト時に設定された税率が加算されて請求されます。0円の場合は無料商品として扱われます。セール価格はここではなく『比較価格』との組み合わせで表示されます">?</span>
+                                    </label>
+                                    <input type="number" id="price" step="0.01" min="0" required>
+                                    <span class="help-text">販売価格（税抜）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="compareAtPrice">
+                                        比較価格 (Compare-at price)
+                                        <span class="help-icon" title="商品の定価または元値。販売価格より高い値を設定すると、割引前価格として表示され『XX%OFF』のようなバッジが自動で付きます。実際の請求額には影響しません。例：定価12,000円 → 販売価格9,600円で20%OFF表示">?</span>
+                                    </label>
+                                    <input type="number" id="compareAtPrice" step="0.01" min="0">
+                                    <span class="help-text">定価（割引表示用）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="costPerItem">
+                                        原価 (Cost per item)
+                                        <span class="help-icon" title="商品調達・製造原価。顧客には表示されず、管理画面での利益レポートに使用されます。正確に入力することで商品別・月次の粗利益分析が可能になります。送料・梱包費は含めず、商品本体のコストのみ入力してください">?</span>
+                                    </label>
+                                    <input type="number" id="costPerItem" step="0.01" min="0">
+                                    <span class="help-text">商品原価（利益計算用）</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group" id="simpleInventoryGroup">
+                                    <label for="inventoryQty">
+                                        在庫数 (Inventory Qty)
+                                        <span class="help-icon" title="バリエーションがない商品の在庫数。バリエーション（サイズや色の組み合わせ）を設定すると、下の『バリエーション別在庫』テーブルが表示され、各組み合わせごとに在庫数を個別に入力できます">?</span>
+                                    </label>
+                                    <input type="number" id="inventoryQty" value="0" min="0">
+                                    <span class="help-text">バリエーションなし商品の在庫数量</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inventoryPolicy">
+                                        在庫ポリシー
+                                        <span class="help-icon" title="在庫が0になった場合の購入可否。DENYは『売り切れ』表示になり購入不可（在庫が入荷するまで待機）。CONTINUEは在庫がなくても引き続き購入可能（バックオーダー・受注生産などに利用）。在庫管理の方針に応じて選択してください">?</span>
+                                    </label>
+                                    <select id="inventoryPolicy">
+                                        <option value="deny">DENY（在庫切れ時は販売停止）</option>
+                                        <option value="continue">CONTINUE（在庫切れ時も販売継続）</option>
+                                    </select>
+                                    <span class="help-text">在庫切れ時の販売方針</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="chargeTax">
+                                        課税
+                                        <span class="help-icon" title="この商品に消費税を課税するかどうか。日本国内販売の場合、原則『はい』です。免税対象商品（書籍・食品等の軽減税率対象を除く特定免税品）や海外B2B販売の場合は『いいえ』を選択してください。税率は管理画面の税設定に従います">?</span>
+                                    </label>
+                                    <select id="chargeTax">
+                                        <option value="true">はい (TRUE)</option>
+                                        <option value="false">いいえ (FALSE)</option>
+                                    </select>
+                                    <span class="help-text">消費税を課税するか</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requiresShipping">
+                                        配送が必要
+                                        <span class="help-icon" title="この商品が物理的に配送されるかどうか。衣服・雑貨等は『はい』。デジタルコンテンツ（電子書籍・音楽・ソフトウェア）やギフトカード、サービス券は『いいえ』を選択。配送設定に影響し、『いいえ』の場合は送料計算から除外されます">?</span>
+                                    </label>
+                                    <select id="requiresShipping">
+                                        <option value="true">はい（物理商品）</option>
+                                        <option value="false">いいえ（デジタル商品等）</option>
+                                    </select>
+                                    <span class="help-text">配送が必要かどうか</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="weight">
+                                        重量 (grams)
+                                        <span class="help-icon" title="商品の重さ（グラム単位）。配送料金表の重量別料金計算に使用されます。正確に入力することで、軽い商品と重い商品で異なる送料を自動設定できます。複数商品購入時は総重量で料金が計算されます。例：Tシャツ約150g、コート約800g">?</span>
+                                    </label>
+                                    <input type="number" id="weight" value="0" min="0">
+                                    <span class="help-text">商品の重量（グラム）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="fulfillmentService">
+                                        配送サービス
+                                        <span class="help-icon" title="配送処理の担当サービス。manualは自社倉庫から手動発送。shopifyはShopify Fulfillment Network等の外部配送サービスを利用。サードパーティの配送アプリを導入している場合はそのサービス名（例：amazon）も選択肢に表示されます">?</span>
+                                    </label>
+                                    <select id="fulfillmentService">
+                                        <option value="manual">manual（手動）</option>
+                                        <option value="shopify">shopify</option>
+                                    </select>
+                                    <span class="help-text">配送処理方法</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 画像セクション -->
+                        <div class="section">
+                            <h3>商品画像</h3>
+                            <div class="form-group">
+                                <label>
+                                    商品画像 (Cloudinary)
+                                    <span class="help-icon" title="商品画像はCloudinary（画像ホスティングサービス）にアップロードして公開URLを取得します。『Cloudinaryへアップロード』で新しい画像をアップロードし、『履歴から選択』で過去にアップロードした画像を再利用できます。画像URLはShopifyのCSVインポートに対応したhttp/https形式で出力されます">?</span>
+                                </label>
+                                <div class="cloudinary-upload-row">
+                                    <input type="file" id="cloudinaryInput" multiple accept="image/*" style="display:none">
+                                    <button type="button" class="btn btn-secondary" id="cloudinaryUploadBtn">Cloudinaryへアップロード</button>
+                                    <button type="button" class="btn btn-secondary" id="openCloudinaryHistory">履歴から選択</button>
+                                </div>
+                                <span class="help-text">アップロード後、公開URLが自動で設定されます</span>
+                                <div id="uploadedImages" class="uploaded-images"></div>
+                            </div>
+                        </div>
+
+                        <!-- オプション・バリエーションセクション -->
+                        <div class="section">
+                            <h3>オプション・バリエーション</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="option1Name">
+                                        オプション1名
+                                        <span class="help-icon" title="商品バリエーションの種類名。Size（サイズ）・Color（色）・Material（素材）・Style（スタイル）等から選択します。Colorを選ぶと『色』のメタフィールドが自動で紐づき、Shopifyのカラー絞り込み機能が有効になります。最大3つのオプションを組み合わせられます">?</span>
+                                    </label>
+                                    <select id="option1Name">
+                                        <option value="">なし</option>
+                                        <option value="Size">Size（サイズ）</option>
+                                        <option value="Color">Color（色）</option>
+                                        <option value="Title">Title</option>
+                                        <option value="Material">Material（素材）</option>
+                                        <option value="Style">Style（スタイル）</option>
+                                    </select>
+                                    <span class="help-text">バリエーションの種類（例：サイズ）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="option1Values">
+                                        オプション1の値（カンマ区切り）
+                                        <span class="help-icon" title="選択したオプションに対する具体的な値をカンマ区切りで入力します。例：Sizeなら『S, M, L, XL』。Colorなら『赤, 黒, ネイビー』。ここで入力した値の組み合わせでバリエーション（SKU）が自動生成されます。値の順序がバリエーションの表示順になります">?</span>
+                                    </label>
+                                    <input type="text" id="option1Values" placeholder="Small, Medium, Large">
+                                    <span class="help-text">カンマ区切りで複数指定（例：S, M, L）</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="option2Name">オプション2名</label>
+                                    <select id="option2Name">
+                                        <option value="">なし</option>
+                                        <option value="Size">Size（サイズ）</option>
+                                        <option value="Color">Color（色）</option>
+                                        <option value="Title">Title</option>
+                                        <option value="Material">Material（素材）</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="option2Values">オプション2の値（カンマ区切り）</label>
+                                    <input type="text" id="option2Values" placeholder="Red, Green, Blue">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="option3Name">オプション3名</label>
+                                    <select id="option3Name">
+                                        <option value="">なし</option>
+                                        <option value="Size">Size（サイズ）</option>
+                                        <option value="Color">Color（色）</option>
+                                        <option value="Title">Title</option>
+                                        <option value="Material">Material（素材）</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="option3Values">オプション3の値（カンマ区切り）</label>
+                                    <input type="text" id="option3Values">
+                                </div>
+                            </div>
+
+                            <div id="variantInventorySection" style="display:none;">
+                                <h4>バリエーション別在庫</h4>
+                                <div id="variantInventoryContainer"></div>
+                                <span class="help-text">各バリエーションの組み合わせごとに在庫数を入力してください</span>
+                            </div>
+                        </div>
+
+                        <!-- SKU構成設定セクション -->
+                        <div class="section">
+                            <h3>SKU構成設定</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="brandName">
+                                        ブランド名
+                                        <span class="help-icon" title="ブランドの正式な商品名。SKU自動生成の際に参照されますが、SKUに直接使用されるのは『ブランド略称（3桁）』の方です。こちらは管理・表示用の補助情報として利用されます。将来ブランドマスタ連携を想定しています">?</span>
+                                    </label>
+                                    <input type="text" id="brandName" placeholder="UNIQLO">
+                                    <span class="help-text">ブランドの正式名称（自由入力）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="brandCode">
+                                        ブランド略称（3桁）
+                                        <span class="help-icon" title="SKUコードの先頭に付く3文字のブランド略称。英数字3桁を推奨。例：UNIQLOなら『UNI』、ZARAなら『ZAR』。SKUフォーマットは『[ブランド3桁]-[シーズン3桁]-[カテゴリ2桁]-[カラー2桁]-[サイズ2桁]』です。ここが空欄の場合SKUが不完全になります">?</span>
+                                    </label>
+                                    <input type="text" id="brandCode" maxlength="3" placeholder="UNI">
+                                    <span class="help-text">SKU先頭に入る3桁の略称（例：UNI）</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="year">
+                                        年
+                                        <span class="help-icon" title="商品の発売年を選択します。選択した年とシーズンから、SKU用のシーズンコードが自動生成されます（例：2026年 → 26）">?</span>
+                                    </label>
+                                    <select id="year">
+                                        <option value="">選択</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2027">2027</option>
+                                        <option value="2028">2028</option>
+                                        <option value="2029">2029</option>
+                                        <option value="2030">2030</option>
+                                    </select>
+                                    <span class="help-text">発売年</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="seasonType">
+                                        シーズン
+                                        <span class="help-icon" title="春夏（SS）または秋冬（AW）を選択します。SS → SKUコード『S』、AW → SKUコード『A』が付与されます">?</span>
+                                    </label>
+                                    <select id="seasonType">
+                                        <option value="">選択</option>
+                                        <option value="SS">SS（春夏）</option>
+                                        <option value="AW">AW（秋冬）</option>
+                                    </select>
+                                    <input type="hidden" id="season">
+                                    <span class="help-text">SS=春夏(S)、AW=秋冬(A)</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="skuCategory">
+                                        SKU用カテゴリ
+                                        <span class="help-icon" title="SKUの3番目に入るカテゴリコードを決めるための入力欄。入力値に応じて自動で2桁の英数字コードが割り当てられます。例：『Tシャツ』=『TS』、『ジャケット』=『JK』、『コート』=『CT』、『スニーカー』=『SN』、『ワンピース』=『OP』。約60種類のカテゴリをサジェストから選択可能。『その他』を選ぶと『ZZ』になります。マッピング一覧はメイン画面の『SKUマッピング一覧を表示』ボタンで確認できます。未対応のカテゴリ名は先頭2文字がコードになります">?</span>
+                                    </label>
+                                    <input type="text" id="skuCategory" list="skuCategoryList" placeholder="ロングスリーブTシャツ">
+                                    <datalist id="skuCategoryList">
+                                        <option value="Tシャツ">
+                                        <option value="半袖Tシャツ">
+                                        <option value="長袖Tシャツ">
+                                        <option value="ロングスリーブTシャツ">
+                                        <option value="ポロシャツ">
+                                        <option value="シャツ">
+                                        <option value="ブラウス">
+                                        <option value="ニット・セーター">
+                                        <option value="カーディガン">
+                                        <option value="パーカー">
+                                        <option value="スウェット">
+                                        <option value="ベスト">
+                                        <option value="ジャケット">
+                                        <option value="ブルゾン">
+                                        <option value="アウター">
+                                        <option value="コート">
+                                        <option value="トレンチコート">
+                                        <option value="ダウンジャケット">
+                                        <option value="パンツ">
+                                        <option value="デニムパンツ">
+                                        <option value="スラックス">
+                                        <option value="チノパンツ">
+                                        <option value="ショートパンツ">
+                                        <option value="スカート">
+                                        <option value="ミニスカート">
+                                        <option value="ドレス">
+                                        <option value="ワンピース">
+                                        <option value="オールインワン">
+                                        <option value="スーツ">
+                                        <option value="セットアップ">
+                                        <option value="シューズ">
+                                        <option value="靴">
+                                        <option value="スニーカー">
+                                        <option value="ブーツ">
+                                        <option value="サンダル">
+                                        <option value="パンプス">
+                                        <option value="フラットシューズ">
+                                        <option value="バッグ">
+                                        <option value="トートバッグ">
+                                        <option value="ショルダーバッグ">
+                                        <option value="リュック">
+                                        <option value="ポーチ">
+                                        <option value="財布">
+                                        <option value="アクセサリー">
+                                        <option value="ネックレス">
+                                        <option value="ブレスレット">
+                                        <option value="イヤリング・ピアス">
+                                        <option value="リング">
+                                        <option value="帽子">
+                                        <option value="キャップ">
+                                        <option value="ハット">
+                                        <option value="マフラー・ストール">
+                                        <option value="手袋">
+                                        <option value="ベルト">
+                                        <option value="サングラス">
+                                        <option value="タイツ・ソックス">
+                                        <option value="レッグウェア">
+                                        <option value="水着">
+                                        <option value="ラッシュガード">
+                                        <option value="ルームウェア">
+                                        <option value="パジャマ">
+                                        <option value="下着">
+                                        <option value="ブラ">
+                                        <option value="ショーツ">
+                                        <option value="香水">
+                                        <option value="電子書籍">
+                                        <option value="電子機器">
+                                        <option value="その他">
+                                    </datalist>
+                                    <span class="help-text">カテゴリ名に応じて2桁コードが自動割り当てられます</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="skuSerial">
+                                        SKU連番（任意・2桁）
+                                        <span class="help-icon" title="同じブランド・シーズン・カテゴリの商品が複数ある場合に重複を防ぐための連番。01, 02, 03...と付与します。空欄の場合は連番なしの既存フォーマットと互換性があります。例：『01』を入れるとSKUが FGM-26S-JK-01-RD-S0 になり、別商品でも重複しません">?</span>
+                                    </label>
+                                    <input type="text" id="skuSerial" maxlength="2" placeholder="01">
+                                    <span class="help-text">重複回避用の連番（空欄可）</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>SKUプレビュー（ベース部分）</label>
+                                    <div id="skuPreview" class="sku-preview">-</div>
+                                    <span class="help-text">オプション（Color/Size）を追加すると自動で末尾が連結されます</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEO・詳細設定セクション -->
+                        <div class="section">
+                            <h3>SEO・詳細設定</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="seoTitle">
+                                        SEOタイトル
+                                        <span class="help-icon" title="Google・Yahoo等の検索結果に表示されるページタイトル。商品名よりも検索キーワードを意識した文言を推奨。70文字以内が表示上限。未入力の場合は『商品名』が使用されます。例：『スリムフィットデニムジャケット メンズ アウター｜FULLGRAM』">?</span>
+                                    </label>
+                                    <input type="text" id="seoTitle">
+                                    <span class="help-text">検索結果に表示されるタイトル（70文字以内推奨）</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="seoDescription">
+                                        SEO説明
+                                        <span class="help-icon" title="検索結果のタイトル下に表示される説明文（メタディスクリプション）。320文字以内が推奨。商品の特徴・対象層・用途を簡潔に記載し、クリック率（CTR）向上を狙います。未入力の場合は商品説明の先頭が自動抽出されます">?</span>
+                                    </label>
+                                    <input type="text" id="seoDescription">
+                                    <span class="help-text">検索結果に表示される説明（320文字以内推奨）</span>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="sku">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="barcode">
+                                        バーコード (Barcode)
+                                        <span class="help-icon" title="商品のバーコード番号（JAN/EAN/ISBN/UPC等）。POSレジや実店舗販売、物流倉庫での棚卸しに必要です。デジタル商品やオリジナル商品でバーコードがない場合は空欄のままで構いません。重複しない一意の値を入力してください">?</span>
+                                    </label>
+                                    <input type="text" id="barcode">
+                                    <span class="help-text">JANコード、ISBN等</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="giftCard">
+                                    ギフトカード
+                                    <span class="help-icon" title="この商品がギフトカード（プリペイドカード）かどうか。『はい』を選ぶと、購入後に自動でギフトカードコードが発行され、受取人にメールで送信されます。通常の物理商品・デジタル商品は『いいえ』を選択してください。ギフトカードは税率設定が異なる場合があります">?</span>
+                                </label>
+                                <select id="giftCard">
+                                    <option value="false">いいえ</option>
+                                    <option value="true">はい</option>
+                                </select>
+                                <span class="help-text">ギフトカード商品の場合は「はい」</span>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- タグ選択モーダル -->
+    <div id="tagPickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>タグを選択</h2>
+                <button class="close-btn" id="closeTagPicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tag-new-row">
+                    <input type="text" id="newTagInput" placeholder="新しいタグ名">
+                    <button type="button" class="btn btn-secondary" id="addNewTagBtn">追加</button>
+                </div>
+                <div id="tagCheckboxes" class="tag-checkboxes"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelTagPicker">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="applyTagsBtn">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cloudinary履歴選択モーダル -->
+    <div id="cloudinaryHistoryModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>Cloudinary画像履歴</h2>
+                <button class="close-btn" id="closeCloudinaryHistory">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="cloudinaryHistoryList" class="cloudinary-history-grid"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelCloudinaryHistory">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="applyCloudinaryHistory">選択を適用</button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <script>
+        (function() {
+            const APP_PASSWORD = 'fullgram2026';
+            const loginScreen = document.getElementById('loginScreen');
+            const appContainer = document.getElementById('appContainer');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginPassword = document.getElementById('loginPassword');
+            const loginError = document.getElementById('loginError');
+
+            function showApp() {
+                loginScreen.style.display = 'none';
+                appContainer.style.display = 'block';
+                localStorage.setItem('csvGenAuth', 'ok');
+            }
+
+            if (localStorage.getItem('csvGenAuth') === 'ok') {
+                showApp();
+            }
+
+            function attemptLogin() {
+                if (loginPassword.value === APP_PASSWORD) {
+                    showApp();
+                } else {
+                    loginError.textContent = 'パスワードが正しくありません';
+                    loginPassword.value = '';
+                    loginPassword.focus();
+                }
+            }
+
+            loginBtn.addEventListener('click', attemptLogin);
+            loginPassword.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') attemptLogin();
+            });
+        })();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
