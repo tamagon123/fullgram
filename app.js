@@ -154,6 +154,12 @@ class ProductCSVGenerator {
         document.getElementById('addCategoryBtn').addEventListener('click', () => this.addDataItem('categories'));
         document.getElementById('addColorBtn').addEventListener('click', () => this.addDataItem('colors'));
         document.getElementById('addTagBtn').addEventListener('click', () => this.addDataItem('tags'));
+        document.querySelectorAll('.size-type-tab').forEach(tab => {
+            tab.addEventListener('click', () => this.switchSizeTypeTab(tab.dataset.sizeType));
+        });
+        document.getElementById('addShoeSizeBtn').addEventListener('click', () => this.addSizeItem('shoes'));
+        document.getElementById('addClothingSizeBtn').addEventListener('click', () => this.addSizeItem('clothing'));
+        document.getElementById('addOtherSizeBtn').addEventListener('click', () => this.addSizeItem('other'));
         document.getElementById('exportDataBtn').addEventListener('click', () => this.exportDataJson());
 
         document.getElementById('openBrandPicker').addEventListener('click', () => this.openBrandPicker());
