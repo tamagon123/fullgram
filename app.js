@@ -1104,7 +1104,9 @@ class ProductCSVGenerator {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `products_export_${new Date().toISOString().slice(0,10)}.csv`;
+        const defaultName = `products_export_${new Date().toISOString().slice(0,10)}.csv`;
+        const customName = document.getElementById('exportFilename').value.trim();
+        link.download = customName.endsWith('.csv') ? customName : (customName ? customName + '.csv' : defaultName);
         link.click();
     }
 
