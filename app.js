@@ -132,6 +132,22 @@ class ProductCSVGenerator {
         document.getElementById('addTagBtn').addEventListener('click', () => this.addDataItem('tags'));
         document.getElementById('exportDataBtn').addEventListener('click', () => this.exportDataJson());
 
+        document.getElementById('openBrandPicker').addEventListener('click', () => this.openBrandPicker());
+        document.getElementById('closeBrandPicker').addEventListener('click', () => this.closeBrandPicker());
+        document.getElementById('cancelBrandPicker').addEventListener('click', () => this.closeBrandPicker());
+        document.getElementById('brandPickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('brandPickerModal')) this.closeBrandPicker();
+        });
+        document.getElementById('brandSearchInput').addEventListener('input', () => this.filterBrandPicker());
+
+        document.getElementById('openCategoryPicker').addEventListener('click', () => this.openCategoryPicker());
+        document.getElementById('closeCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
+        document.getElementById('cancelCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
+        document.getElementById('categoryPickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('categoryPickerModal')) this.closeCategoryPicker();
+        });
+        document.getElementById('categorySearchInput').addEventListener('input', () => this.filterCategoryPicker());
+
         document.getElementById('openTagPicker').addEventListener('click', () => this.openTagPicker());
         document.getElementById('closeTagPicker').addEventListener('click', () => this.closeTagPicker());
         document.getElementById('cancelTagPicker').addEventListener('click', () => this.closeTagPicker());
@@ -436,6 +452,79 @@ class ProductCSVGenerator {
         alert('JSONファイルをダウンロードしました。data/フォルダ内のJSONファイルを更新してください。');
     }
 
+    openBrandPicker() {
+        document.getElementById('brandPickerModal').classList.add('active');
+        document.getElementById('brandSearchInput').value = '';
+        this.renderBrandPicker('');
+        document.getElementById('brandSearchInput').focus();
+    }
+
+    closeBrandPicker() {
+        document.getElementById('brandPickerModal').classList.remove('active');
+    }
+
+    renderBrandPicker(filter) {
+        const container = document.getElementById('brandPickerList');
+        const entries = Object.entries(this.dataBrands).sort((a, b) => a[0].localeCompare(b[0]));
+        const filtered = filter ? entries.filter(([name]) => name.toLowerCase().includes(filter.toLowerCase())) : entries;
+        container.innerHTML = filtered.map(([name, info]) => `
+            <div class="data-list-item data-picker-item" onclick="app.selectBrand('${this.escapeHtml(name).replace(/'/g, "\\'")}','${this.escapeHtml(info.code).replace(/'/g, "\\'")}')">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(info.code)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    filterBrandPicker() {
+        const filter = document.getElementById('brandSearchInput').value.trim();
+        this.renderBrandPicker(filter);
+    }
+
+    selectBrand(name, code) {
+        document.getElementById('brandName').value = name;
+        document.getElementById('brandCode').value = code;
+        this.updateSkuPreview();
+        this.closeBrandPicker();
+    }
+
+    openCategoryPicker() {
+        document.getElementById('categoryPickerModal').classList.add('active');
+        document.getElementById('categorySearchInput').value = '';
+        this.renderCategoryPicker('');
+        document.getElementById('categorySearchInput').focus();
+    }
+
+    closeCategoryPicker() {
+        document.getElementById('categoryPickerModal').classList.remove('active');
+    }
+
+    renderCategoryPicker(filter) {
+        const container = document.getElementById('categoryPickerList');
+        const entries = Object.entries(this.skuMaps.category).sort((a, b) => a[0].localeCompare(b[0]));
+        const filtered = filter ? entries.filter(([name]) => name.toLowerCase().includes(filter.toLowerCase())) : entries;
+        container.innerHTML = filtered.map(([name, code]) => `
+            <div class="data-list-item data-picker-item" onclick="app.selectCategory('${this.escapeHtml(name).replace(/'/g, "\\'")}')">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(code)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    filterCategoryPicker() {
+        const filter = document.getElementById('categorySearchInput').value.trim();
+        this.renderCategoryPicker(filter);
+    }
+
+    selectCategory(name) {
+        document.getElementById('skuCategory').value = name;
+        this.updateSkuPreview();
+        this.closeCategoryPicker();
+    }
+
     clearForm() {
         document.getElementById('productForm').reset();
         document.getElementById('productId').value = '';
@@ -684,7 +773,7 @@ class ProductCSVGenerator {
 
     renderTagCheckboxes() {
         const container = document.getElementById('tagCheckboxes');
-        const allTags = [...new Set([...this.defaultTags, ...this.customTags])].sort();
+        const allTags = [...new Set([...this.dataTags, ...this.customTags])].sort();
         container.innerHTML = allTags.map(tag => `
             <label class="tag-checkbox-label">
                 <input type="checkbox" value="${this.escapeHtml(tag)}" ${this.tempSelectedTags.has(tag) ? 'checked' : ''}>
@@ -703,7 +792,7 @@ class ProductCSVGenerator {
         const input = document.getElementById('newTagInput');
         const name = input.value.trim();
         if (!name) return;
-        if (!this.defaultTags.includes(name) && !this.customTags.includes(name)) {
+        if (!this.dataTags.includes(name) && !this.customTags.includes(name)) {
             this.customTags.push(name);
         }
         this.tempSelectedTags.add(name);

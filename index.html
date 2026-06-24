@@ -409,18 +409,21 @@
                                 <div class="form-group">
                                     <label for="brandName">
                                         ブランド名
-                                        <span class="help-icon" title="ブランドの正式な商品名。SKU自動生成の際に参照されますが、SKUに直接使用されるのは『ブランド略称（3桁）』の方です。こちらは管理・表示用の補助情報として利用されます。将来ブランドマスタ連携を想定しています">?</span>
+                                        <span class="help-icon" title="ブランドの正式な商品名。SKU自動生成の際に参照されますが、SKUに直接使用されるのは『ブランド略称（3桁）』の方です。こちらは管理・表示用の補助情報として利用されます">?</span>
                                     </label>
-                                    <input type="text" id="brandName" placeholder="UNIQLO">
-                                    <span class="help-text">ブランドの正式名称（自由入力）</span>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="brandName" placeholder="UNIQLO" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openBrandPicker">選択</button>
+                                    </div>
+                                    <span class="help-text">「選択」ボタンからブランドを選んでください</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="brandCode">
                                         ブランド略称（3桁）
-                                        <span class="help-icon" title="SKUコードの先頭に付く3文字のブランド略称。英数字3桁を推奨。例：UNIQLOなら『UNI』、ZARAなら『ZAR』。SKUフォーマットは『[ブランド3桁]-[シーズン3桁]-[カテゴリ2桁]-[カラー2桁]-[サイズ2桁]』です。ここが空欄の場合SKUが不完全になります">?</span>
+                                        <span class="help-icon" title="ブランドを選択すると自動で入力されます">?</span>
                                     </label>
-                                    <input type="text" id="brandCode" maxlength="3" placeholder="UNI">
-                                    <span class="help-text">SKU先頭に入る3桁の略称（例：UNI）</span>
+                                    <input type="text" id="brandCode" maxlength="3" placeholder="UNI" readonly>
+                                    <span class="help-text">ブランド選択時に自動設定されます</span>
                                 </div>
                             </div>
                             <div class="form-row">
@@ -457,80 +460,13 @@
                                 <div class="form-group">
                                     <label for="skuCategory">
                                         SKU用カテゴリ
-                                        <span class="help-icon" title="SKUの3番目に入るカテゴリコードを決めるための入力欄。入力値に応じて自動で2桁の英数字コードが割り当てられます。例：『Tシャツ』=『TS』、『ジャケット』=『JK』、『コート』=『CT』、『スニーカー』=『SN』、『ワンピース』=『OP』。約60種類のカテゴリをサジェストから選択可能。『その他』を選ぶと『ZZ』になります。マッピング一覧はメイン画面の『SKUマッピング一覧を表示』ボタンで確認できます。未対応のカテゴリ名は先頭2文字がコードになります">?</span>
+                                        <span class="help-icon" title="SKUの3番目に入るカテゴリコードを決めるための入力欄。JSONファイルに登録されたカテゴリから選択できます">?</span>
                                     </label>
-                                    <input type="text" id="skuCategory" list="skuCategoryList" placeholder="ロングスリーブTシャツ">
-                                    <datalist id="skuCategoryList">
-                                        <option value="Tシャツ">
-                                        <option value="半袖Tシャツ">
-                                        <option value="長袖Tシャツ">
-                                        <option value="ロングスリーブTシャツ">
-                                        <option value="ポロシャツ">
-                                        <option value="シャツ">
-                                        <option value="ブラウス">
-                                        <option value="ニット・セーター">
-                                        <option value="カーディガン">
-                                        <option value="パーカー">
-                                        <option value="スウェット">
-                                        <option value="ベスト">
-                                        <option value="ジャケット">
-                                        <option value="ブルゾン">
-                                        <option value="アウター">
-                                        <option value="コート">
-                                        <option value="トレンチコート">
-                                        <option value="ダウンジャケット">
-                                        <option value="パンツ">
-                                        <option value="デニムパンツ">
-                                        <option value="スラックス">
-                                        <option value="チノパンツ">
-                                        <option value="ショートパンツ">
-                                        <option value="スカート">
-                                        <option value="ミニスカート">
-                                        <option value="ドレス">
-                                        <option value="ワンピース">
-                                        <option value="オールインワン">
-                                        <option value="スーツ">
-                                        <option value="セットアップ">
-                                        <option value="シューズ">
-                                        <option value="靴">
-                                        <option value="スニーカー">
-                                        <option value="ブーツ">
-                                        <option value="サンダル">
-                                        <option value="パンプス">
-                                        <option value="フラットシューズ">
-                                        <option value="バッグ">
-                                        <option value="トートバッグ">
-                                        <option value="ショルダーバッグ">
-                                        <option value="リュック">
-                                        <option value="ポーチ">
-                                        <option value="財布">
-                                        <option value="アクセサリー">
-                                        <option value="ネックレス">
-                                        <option value="ブレスレット">
-                                        <option value="イヤリング・ピアス">
-                                        <option value="リング">
-                                        <option value="帽子">
-                                        <option value="キャップ">
-                                        <option value="ハット">
-                                        <option value="マフラー・ストール">
-                                        <option value="手袋">
-                                        <option value="ベルト">
-                                        <option value="サングラス">
-                                        <option value="タイツ・ソックス">
-                                        <option value="レッグウェア">
-                                        <option value="水着">
-                                        <option value="ラッシュガード">
-                                        <option value="ルームウェア">
-                                        <option value="パジャマ">
-                                        <option value="下着">
-                                        <option value="ブラ">
-                                        <option value="ショーツ">
-                                        <option value="香水">
-                                        <option value="電子書籍">
-                                        <option value="電子機器">
-                                        <option value="その他">
-                                    </datalist>
-                                    <span class="help-text">カテゴリ名に応じて2桁コードが自動割り当てられます</span>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="skuCategory" placeholder="カテゴリを選択" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openCategoryPicker">選択</button>
+                                    </div>
+                                    <span class="help-text">「選択」ボタンからカテゴリを選んでください</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="skuSerial">
@@ -705,6 +641,44 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" id="exportDataBtn">JSONをエクスポート</button>
                 <button type="button" class="btn btn-secondary" id="cancelDataManage">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ブランド選択モーダル -->
+    <div id="brandPickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>ブランドを選択</h2>
+                <button class="close-btn" id="closeBrandPicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="data-add-row">
+                    <input type="text" id="brandSearchInput" placeholder="ブランド名で検索">
+                </div>
+                <div id="brandPickerList" class="data-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBrandPicker">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カテゴリ選択モーダル -->
+    <div id="categoryPickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>カテゴリを選択</h2>
+                <button class="close-btn" id="closeCategoryPicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="data-add-row">
+                    <input type="text" id="categorySearchInput" placeholder="カテゴリ名で検索">
+                </div>
+                <div id="categoryPickerList" class="data-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelCategoryPicker">キャンセル</button>
             </div>
         </div>
     </div>

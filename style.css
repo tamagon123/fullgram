@@ -1143,6 +1143,15 @@ select {
     background: #fef2f2;
 }
 
+.data-picker-item {
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.data-picker-item:hover {
+    background: var(--color-accent-light);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 16px;
