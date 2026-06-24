@@ -43,106 +43,29 @@ class ProductCSVGenerator {
             'Brand Code','SKU Category','SKU Serial','Season','Brand Name'
         ];
         
-        this.skuMaps = {
-            category: {
-                'Tシャツ': 'TS',
-                '半袖Tシャツ': 'TS',
-                '長袖Tシャツ': 'LT',
-                'ロングスリーブTシャツ': 'LT',
-                'ポロシャツ': 'PO',
-                'シャツ': 'ST',
-                'ブラウス': 'BL',
-                'ニット・セーター': 'KN',
-                'カーディガン': 'CD',
-                'パーカー': 'PK',
-                'スウェット': 'SW',
-                'ベスト': 'VT',
-                'ジャケット': 'JK',
-                'ブルゾン': 'BZ',
-                'アウター': 'OT',
-                'コート': 'CT',
-                'トレンチコート': 'TC',
-                'ダウンジャケット': 'DJ',
-                'パンツ': 'PT',
-                'デニムパンツ': 'DP',
-                'スラックス': 'SL',
-                'チノパンツ': 'CP',
-                'ショートパンツ': 'SP',
-                'スカート': 'SK',
-                'ミニスカート': 'MS',
-                'ドレス': 'DR',
-                'ワンピース': 'OP',
-                'オールインワン': 'AI',
-                'スーツ': 'SU',
-                'セットアップ': 'SA',
-                'シューズ': 'SH',
-                '靴': 'SH',
-                'スニーカー': 'SN',
-                'ブーツ': 'BT',
-                'サンダル': 'SD',
-                'パンプス': 'PP',
-                'フラットシューズ': 'FS',
-                'バッグ': 'BG',
-                'トートバッグ': 'TB',
-                'ショルダーバッグ': 'SB',
-                'リュック': 'RK',
-                'ポーチ': 'PC',
-                '財布': 'WT',
-                'アクセサリー': 'AC',
-                'ネックレス': 'NK',
-                'ブレスレット': 'BR',
-                'イヤリング・ピアス': 'ER',
-                'リング': 'RG',
-                '帽子': 'HT',
-                'キャップ': 'CA',
-                'ハット': 'HA',
-                'マフラー・ストール': 'MF',
-                '手袋': 'GL',
-                'ベルト': 'BE',
-                'サングラス': 'SG',
-                'タイツ・ソックス': 'SO',
-                'レッグウェア': 'LW',
-                '水着': 'SW',
-                'ラッシュガード': 'RA',
-                'ルームウェア': 'RW',
-                'パジャマ': 'PJ',
-                '下着': 'UN',
-                'ブラ': 'BA',
-                'ショーツ': 'ST',
-                '香水': 'PF',
-                '電子書籍': 'BK',
-                '電子機器': 'EL',
-                'その他': 'ZZ',
-            },
-            color: {
-                '黒': 'BK', 'Black': 'BK', 'ブラック': 'BK',
-                '白': 'WH', 'White': 'WH', 'ホワイト': 'WH',
-                '赤': 'RD', 'Red': 'RD', 'レッド': 'RD',
-                '青': 'BL', 'Blue': 'BL', 'ブルー': 'BL',
-                '紺': 'NV', 'Navy': 'NV', 'ネイビー': 'NV',
-                '緑': 'GR', 'Green': 'GR', 'グリーン': 'GR',
-                '黄': 'YL', 'Yellow': 'YL', 'イエロー': 'YL',
-                'ピンク': 'PK', 'Pink': 'PK',
-                '紫': 'PP', 'Purple': 'PP', 'パープル': 'PP',
-                '灰': 'GY', 'Gray': 'GY', 'グレー': 'GY',
-                '茶': 'BR', 'Brown': 'BR', 'ブラウン': 'BR',
-                '橙': 'OR', 'Orange': 'OR', 'オレンジ': 'OR',
-                'ベージュ': 'BE', 'Beige': 'BE',
-                'カーキ': 'KH', 'Khaki': 'KH',
-            },
-            size: {
-                'XS': 'XS',
-                'S': 'S0',
-                'M': 'M0',
-                'L': 'L0',
-                'XL': 'XL',
-                'XXL': '2L',
-                'XXXL': '3L',
-                'FREE': 'FR',
-                'フリー': 'FR',
-            }
-        };
+        this.skuMaps = { category: {}, color: {}, size: {} };
+        this.dataBrands = {};
+        this.dataTags = [];
+        this.loadData();
+    }
 
+    async loadData() {
+        try {
+            const [cat, col, sz, br, tg] = await Promise.all([
+                fetch('data/categories.json').then(r => r.json()).catch(() => ({})),
+                fetch('data/colors.json').then(r => r.json()).catch(() => ({})),
+                fetch('data/sizes.json').then(r => r.json()).catch(() => ({})),
+                fetch('data/brands.json').then(r => r.json()).catch(() => ({})),
+                fetch('data/tags.json').then(r => r.json()).catch(() => ({ tags: [] }))
+            ]);
+            this.skuMaps.category = cat;
+            this.skuMaps.color = col;
+            this.skuMaps.size = sz;
+            this.dataBrands = br;
+            this.dataTags = tg.tags || [];
+        } catch (e) {
+            console.warn('Data files not loaded:', e);
+        }
         this.init();
     }
 
@@ -192,6 +115,22 @@ class ProductCSVGenerator {
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
             if (panel.style.display === 'block') this.renderSkuMaps();
         });
+
+        document.getElementById('manageData').addEventListener('click', () => this.openDataManage());
+        document.getElementById('closeDataManage').addEventListener('click', () => this.closeDataManage());
+        document.getElementById('cancelDataManage').addEventListener('click', () => this.closeDataManage());
+        document.getElementById('dataManageModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('dataManageModal')) this.closeDataManage();
+        });
+        document.querySelectorAll('.data-tab').forEach(tab => {
+            tab.addEventListener('click', () => this.switchDataTab(tab.dataset.tab));
+        });
+        document.getElementById('addBrandBtn').addEventListener('click', () => this.addDataItem('brands'));
+        document.getElementById('addCategoryBtn').addEventListener('click', () => this.addDataItem('categories'));
+        document.getElementById('addColorBtn').addEventListener('click', () => this.addDataItem('colors'));
+        document.getElementById('addSizeBtn').addEventListener('click', () => this.addDataItem('sizes'));
+        document.getElementById('addTagBtn').addEventListener('click', () => this.addDataItem('tags'));
+        document.getElementById('exportDataBtn').addEventListener('click', () => this.exportDataJson());
 
         document.getElementById('openTagPicker').addEventListener('click', () => this.openTagPicker());
         document.getElementById('closeTagPicker').addEventListener('click', () => this.closeTagPicker());
@@ -343,6 +282,158 @@ class ProductCSVGenerator {
         this.uploadedImages = [];
         this.currentEditingVariantInventory = null;
         this.renderUploadedImages();
+    }
+
+    openDataManage() {
+        document.getElementById('dataManageModal').classList.add('active');
+        this.renderDataLists();
+    }
+
+    closeDataManage() {
+        document.getElementById('dataManageModal').classList.remove('active');
+    }
+
+    switchDataTab(tab) {
+        document.querySelectorAll('.data-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        document.querySelectorAll('.data-tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+    }
+
+    renderDataLists() {
+        // Brands
+        const brandsList = document.getElementById('brandsList');
+        const brandsEntries = Object.entries(this.dataBrands).sort((a, b) => a[0].localeCompare(b[0]));
+        brandsList.innerHTML = brandsEntries.length ? brandsEntries.map(([name, info]) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(info.code || '')}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('brands','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Categories
+        const catList = document.getElementById('categoriesList');
+        const catEntries = Object.entries(this.skuMaps.category).sort((a, b) => a[0].localeCompare(b[0]));
+        catList.innerHTML = catEntries.length ? catEntries.map(([name, code]) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(code)}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('categories','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Colors
+        const colList = document.getElementById('colorsList');
+        const colEntries = Object.entries(this.skuMaps.color).sort((a, b) => a[0].localeCompare(b[0]));
+        colList.innerHTML = colEntries.length ? colEntries.map(([name, code]) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(code)}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('colors','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Sizes
+        const szList = document.getElementById('sizesList');
+        const szEntries = Object.entries(this.skuMaps.size).sort((a, b) => a[0].localeCompare(b[0]));
+        szList.innerHTML = szEntries.length ? szEntries.map(([name, code]) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(code)}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('sizes','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Tags
+        const tagsList = document.getElementById('tagsList');
+        const sortedTags = [...this.dataTags].sort((a, b) => a.localeCompare(b));
+        tagsList.innerHTML = sortedTags.length ? sortedTags.map((tag, i) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(tag)}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('tags',${i})">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+    }
+
+    addDataItem(type) {
+        if (type === 'brands') {
+            const name = document.getElementById('newBrandName').value.trim();
+            const code = document.getElementById('newBrandCode').value.trim().toUpperCase();
+            if (!name || !code) return;
+            this.dataBrands[name] = { code };
+            document.getElementById('newBrandName').value = '';
+            document.getElementById('newBrandCode').value = '';
+        } else if (type === 'categories') {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const code = document.getElementById('newCategoryCode').value.trim().toUpperCase();
+            if (!name || !code) return;
+            this.skuMaps.category[name] = code;
+            document.getElementById('newCategoryName').value = '';
+            document.getElementById('newCategoryCode').value = '';
+        } else if (type === 'colors') {
+            const name = document.getElementById('newColorName').value.trim();
+            const code = document.getElementById('newColorCode').value.trim().toUpperCase();
+            if (!name || !code) return;
+            this.skuMaps.color[name] = code;
+            document.getElementById('newColorName').value = '';
+            document.getElementById('newColorCode').value = '';
+        } else if (type === 'sizes') {
+            const name = document.getElementById('newSizeName').value.trim();
+            const code = document.getElementById('newSizeCode').value.trim().toUpperCase();
+            if (!name || !code) return;
+            this.skuMaps.size[name] = code;
+            document.getElementById('newSizeName').value = '';
+            document.getElementById('newSizeCode').value = '';
+        } else if (type === 'tags') {
+            const name = document.getElementById('newTagName').value.trim();
+            if (!name || this.dataTags.includes(name)) return;
+            this.dataTags.push(name);
+            this.customTags.push(name);
+            document.getElementById('newTagName').value = '';
+        }
+        this.renderDataLists();
+    }
+
+    removeDataItem(type, key) {
+        if (type === 'brands') {
+            delete this.dataBrands[key];
+        } else if (type === 'categories') {
+            delete this.skuMaps.category[key];
+        } else if (type === 'colors') {
+            delete this.skuMaps.color[key];
+        } else if (type === 'sizes') {
+            delete this.skuMaps.size[key];
+        } else if (type === 'tags') {
+            const idx = parseInt(key);
+            if (!isNaN(idx)) this.dataTags.splice(idx, 1);
+        }
+        this.renderDataLists();
+    }
+
+    exportDataJson() {
+        const data = {
+            brands: this.dataBrands,
+            categories: this.skuMaps.category,
+            colors: this.skuMaps.color,
+            sizes: this.skuMaps.size,
+            tags: this.dataTags
+        };
+        const content = JSON.stringify(data, null, 2);
+        const blob = new Blob([content], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `data_export_${new Date().toISOString().slice(0,10)}.json`;
+        link.click();
+        alert('JSONファイルをダウンロードしました。data/フォルダ内のJSONファイルを更新してください。');
     }
 
     clearForm() {

@@ -31,6 +31,7 @@
             <div class="toolbar">
                 <button id="exportCsv" class="btn btn-success">CSV出力</button>
                 <button id="loadTemplate" class="btn btn-secondary">既存CSV読み込み</button>
+                <button id="manageData" class="btn btn-secondary">データ管理</button>
                 <input type="file" id="templateFile" accept=".csv" style="display:none">
             </div>
 
@@ -644,6 +645,68 @@
         </div>
     </div>
 
+    </div>
+
+    <!-- データ管理モーダル -->
+    <div id="dataManageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>データ管理</h2>
+                <button class="close-btn" id="closeDataManage">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="data-tabs">
+                    <button type="button" class="data-tab active" data-tab="brands">ブランド</button>
+                    <button type="button" class="data-tab" data-tab="categories">カテゴリ</button>
+                    <button type="button" class="data-tab" data-tab="colors">カラー</button>
+                    <button type="button" class="data-tab" data-tab="sizes">サイズ</button>
+                    <button type="button" class="data-tab" data-tab="tags">タグ</button>
+                </div>
+                <div class="data-tab-content active" id="tab-brands">
+                    <div class="data-add-row">
+                        <input type="text" id="newBrandName" placeholder="ブランド名">
+                        <input type="text" id="newBrandCode" placeholder="コード（3桁）" maxlength="3">
+                        <button type="button" class="btn btn-primary" id="addBrandBtn">追加</button>
+                    </div>
+                    <div id="brandsList" class="data-list"></div>
+                </div>
+                <div class="data-tab-content" id="tab-categories">
+                    <div class="data-add-row">
+                        <input type="text" id="newCategoryName" placeholder="カテゴリ名">
+                        <input type="text" id="newCategoryCode" placeholder="コード（2桁）" maxlength="2">
+                        <button type="button" class="btn btn-primary" id="addCategoryBtn">追加</button>
+                    </div>
+                    <div id="categoriesList" class="data-list"></div>
+                </div>
+                <div class="data-tab-content" id="tab-colors">
+                    <div class="data-add-row">
+                        <input type="text" id="newColorName" placeholder="カラー名">
+                        <input type="text" id="newColorCode" placeholder="コード（2桁）" maxlength="2">
+                        <button type="button" class="btn btn-primary" id="addColorBtn">追加</button>
+                    </div>
+                    <div id="colorsList" class="data-list"></div>
+                </div>
+                <div class="data-tab-content" id="tab-sizes">
+                    <div class="data-add-row">
+                        <input type="text" id="newSizeName" placeholder="サイズ名">
+                        <input type="text" id="newSizeCode" placeholder="コード" maxlength="3">
+                        <button type="button" class="btn btn-primary" id="addSizeBtn">追加</button>
+                    </div>
+                    <div id="sizesList" class="data-list"></div>
+                </div>
+                <div class="data-tab-content" id="tab-tags">
+                    <div class="data-add-row">
+                        <input type="text" id="newTagName" placeholder="タグ名">
+                        <button type="button" class="btn btn-primary" id="addTagBtn">追加</button>
+                    </div>
+                    <div id="tagsList" class="data-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="exportDataBtn">JSONをエクスポート</button>
+                <button type="button" class="btn btn-secondary" id="cancelDataManage">閉じる</button>
+            </div>
+        </div>
     </div>
 
     <script>
