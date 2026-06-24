@@ -354,19 +354,37 @@ class ProductCSVGenerator {
             </div>
         `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
 
-        // Sizes
-        const szList = document.getElementById('sizesList');
-        const szEntries = Object.entries(this.skuMaps.size).sort((a, b) => a[0].localeCompare(b[0]));
-        szList.innerHTML = szEntries.length ? szEntries.map(([name, code]) => `
-            <div class="data-list-item">
-                <div class="data-list-item-info">
-                    <span class="data-list-item-name">${this.escapeHtml(name)}</span>
-                    <span class="data-list-item-code">${this.escapeHtml(code)}</span>
-                </div>
-                <button class="data-list-item-remove" onclick="app.removeDataItem('sizes','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
-            </div>
-        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+        // Shoe Sizes
+        const shoeList = document.getElementById('shoeSizesList');
+        const shoeEntries = Object.entries(this.dataSizes.shoes).sort((a, b) => {
+            const n1 = parseFloat(a[0].replace(/[^0-9.]/g, '')) || 0;
+            const n2 = parseFloat(b[0].replace(/[^0-9.]/g, '')) || 0;
+            return n1 - n2;
+        });
+        shoeList.innerHTML = shoeEntries.length ? shoeEntries.map(([name, info]) => {
+            const extra = [];
+            if (info.uk) extra.push(`UK: ${info.uk}`);
+            if (info.us) extra.push(`US: ${info.us}`);
+            const extraStr = extra.length ? ` (${extra.join(' / ')})` : '';
+            const escName = this.escapeHtml(name).replace(/'/g, "\\'");
+            return `<div class="data-list-item"><div class="data-list-item-info"><span class="data-list-item-name">${this.escapeHtml(name)}${extraStr}</span><span class="data-list-item-code">${this.escapeHtml(info.code)}</span></div><button class="data-list-item-remove" onclick="app.removeSizeItem('shoes','${escName}')">&times;</button></div>`;
+        }).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
 
+        // Clothing Sizes
+        const clothList = document.getElementById('clothingSizesList');
+        const clothEntries = Object.entries(this.dataSizes.clothing).sort((a, b) => a[0].localeCompare(b[0]));
+        clothList.innerHTML = clothEntries.length ? clothEntries.map(([name, info]) => {
+            const escName = this.escapeHtml(name).replace(/'/g, "\\'");
+            return `<div class="data-list-item"><div class="data-list-item-info"><span class="data-list-item-name">${this.escapeHtml(name)}</span><span class="data-list-item-code">${this.escapeHtml(info.code)}</span></div><button class="data-list-item-remove" onclick="app.removeSizeItem('clothing','${escName}')">&times;</button></div>`;
+        }).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Other Sizes
+        const otherList = document.getElementById('otherSizesList');
+        const otherEntries = Object.entries(this.dataSizes.other).sort((a, b) => a[0].localeCompare(b[0]));
+        otherList.innerHTML = otherEntries.length ? otherEntries.map(([name, info]) => {
+            const escName = this.escapeHtml(name).replace(/'/g, "\\'");
+            return `<div class="data-list-item"><div class="data-list-item-info"><span class="data-list-item-name">${this.escapeHtml(name)}</span><span class="data-list-item-code">${this.escapeHtml(info.code)}</span></div><button class="data-list-item-remove" onclick="app.removeSizeItem('other','${escName}')">&times;</button></div>`;
+        }).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
         // Tags
         const tagsList = document.getElementById('tagsList');
         const sortedTags = [...this.dataTags].sort((a, b) => a.localeCompare(b));
@@ -434,6 +452,80 @@ class ProductCSVGenerator {
         }
         this.renderDataLists();
     }
+
+    switchSizeTypeTab(type) {
+        document.querySelectorAll('.size-type-tab').forEach(t => t.classList.toggle('active', t.dataset.sizeType === type));
+        document.querySelectorAll('.size-type-content').forEach(c => c.classList.toggle('active', c.id === 'size-type-' + type));
+    }
+
+    addSizeItem(type) {
+        if (type === 'shoes') {
+            const name = document.getElementById('newShoeSizeName').value.trim();
+            const code = document.getElementById('newShoeSizeCode').value.trim().toUpperCase();
+            const uk = document.getElementById('newShoeSizeUk').value.trim();
+            const us = document.getElementById('newShoeSizeUs').value.trim();
+            if (!name || !code) return alert('サイズ名とコードを入力してください');
+            if (this.skuMaps.size[name]) return alert(`サイズ「${name}」は既に登録されています`);
+            if (Object.values(this.skuMaps.size).includes(code)) return alert(`コード「${code}」は既に使用されています`);
+            const info = { code };
+            if (uk) info.uk = uk;
+            if (us) info.us = us;
+            this.dataSizes.shoes[name] = info;
+            this.skuMaps.size[name] = code;
+            document.getElementById('newShoeSizeName').value = '';
+            document.getElementById('newShoeSizeCode').value = '';
+            document.getElementById('newShoeSizeUk').value = '';
+            document.getElementById('newShoeSizeUs').value = '';
+        } else if (type === 'clothing') {
+            const name = document.getElementById('newClothingSizeName').value.trim();
+            const code = document.getElementById('newClothingSizeCode').value.trim().toUpperCase();
+            if (!name || !code) return alert('サイズ名とコードを入力してください');
+            if (this.skuMaps.size[name]) return alert(`サイズ「${name}」は既に登録されています`);
+            if (Object.values(this.skuMaps.size).includes(code)) return alert(`コード「${code}」は既に使用されています`);
+            this.dataSizes.clothing[name] = { code };
+            this.skuMaps.size[name] = code;
+            document.getElementById('newClothingSizeName').value = '';
+            document.getElementById('newClothingSizeCode').value = '';
+        } else if (type === 'other') {
+            const name = document.getElementById('newOtherSizeName').value.trim();
+            const code = document.getElementById('newOtherSizeCode').value.trim().toUpperCase();
+            if (!name || !code) return alert('サイズ名とコードを入力してください');
+            if (this.skuMaps.size[name]) return alert(`サイズ「${name}」は既に登録されています`);
+            if (Object.values(this.skuMaps.size).includes(code)) return alert(`コード「${code}」は既に使用されています`);
+            this.dataSizes.other[name] = { code };
+            this.skuMaps.size[name] = code;
+            document.getElementById('newOtherSizeName').value = '';
+            document.getElementById('newOtherSizeCode').value = '';
+        }
+        this.renderDataLists();
+    }
+
+    removeSizeItem(type, key) {
+        if (this.dataSizes[type]) {
+            delete this.dataSizes[type][key];
+            delete this.skuMaps.size[key];
+        }
+        this.renderDataLists();
+    }
+
+    bulkAddShoeSizes() {
+        const ukBase = 0;
+        const usBase = 0;
+        for (let s = 14; s <= 30; s += 0.5) {
+            const name = 'JP ' + (s % 1 === 0 ? String(s) : String(s));
+            if (this.skuMaps.size[name]) continue;
+            const code = 'JP' + String(s).replace('.', '');
+            const ukVal = ukBase + (s - 14);
+            const usVal = usBase + (s - 14);
+            const ukStr = Number.isInteger(ukVal) ? String(ukVal) : String(ukVal);
+            const usStr = Number.isInteger(usVal) ? String(usVal) : String(usVal);
+            this.dataSizes.shoes[name] = { code, uk: 'UK ' + ukStr, us: 'US ' + usStr };
+            this.skuMaps.size[name] = code;
+        }
+        this.renderDataLists();
+        alert('JP 14~30 の靴サイズを一括登録しました');
+    }
+
 
     exportDataJson() {
         const data = {

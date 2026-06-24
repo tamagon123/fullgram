@@ -623,12 +623,40 @@
                     <div id="colorsList" class="data-list"></div>
                 </div>
                 <div class="data-tab-content" id="tab-sizes">
-                    <div class="data-add-row">
-                        <input type="text" id="newSizeName" placeholder="サイズ名">
-                        <input type="text" id="newSizeCode" placeholder="コード" maxlength="3">
-                        <button type="button" class="btn btn-primary" id="addSizeBtn">追加</button>
+                    <div class="size-type-tabs">
+                        <button type="button" class="size-type-tab active" data-size-type="shoes">靴サイズ</button>
+                        <button type="button" class="size-type-tab" data-size-type="clothing">服サイズ</button>
+                        <button type="button" class="size-type-tab" data-size-type="other">その他</button>
                     </div>
-                    <div id="sizesList" class="data-list"></div>
+                    <div class="size-type-content active" id="size-type-shoes">
+                        <div class="data-add-row">
+                            <input type="text" id="newShoeSizeName" placeholder="サイズ名（例: JP 14）">
+                            <input type="text" id="newShoeSizeCode" placeholder="コード" maxlength="5">
+                            <input type="text" id="newShoeSizeUk" placeholder="UK表記（例: UK 0）">
+                            <input type="text" id="newShoeSizeUs" placeholder="US表記（例: US 0）">
+                            <button type="button" class="btn btn-primary" id="addShoeSizeBtn">追加</button>
+                        </div>
+                        <div class="data-add-row">
+                            <button type="button" class="btn btn-secondary" id="bulkAddShoeSizes">JP 14~30 を0.5刻みで一括登録</button>
+                        </div>
+                        <div id="shoeSizesList" class="data-list"></div>
+                    </div>
+                    <div class="size-type-content" id="size-type-clothing">
+                        <div class="data-add-row">
+                            <input type="text" id="newClothingSizeName" placeholder="サイズ名（例: XS）">
+                            <input type="text" id="newClothingSizeCode" placeholder="コード" maxlength="3">
+                            <button type="button" class="btn btn-primary" id="addClothingSizeBtn">追加</button>
+                        </div>
+                        <div id="clothingSizesList" class="data-list"></div>
+                    </div>
+                    <div class="size-type-content" id="size-type-other">
+                        <div class="data-add-row">
+                            <input type="text" id="newOtherSizeName" placeholder="サイズ名">
+                            <input type="text" id="newOtherSizeCode" placeholder="コード" maxlength="5">
+                            <button type="button" class="btn btn-primary" id="addOtherSizeBtn">追加</button>
+                        </div>
+                        <div id="otherSizesList" class="data-list"></div>
+                    </div>
                 </div>
                 <div class="data-tab-content" id="tab-tags">
                     <div class="data-add-row">
