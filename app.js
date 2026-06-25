@@ -215,10 +215,7 @@ class ProductCSVGenerator {
         document.getElementById('closeVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
         document.getElementById('cancelVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
         document.getElementById('clearVariantImageBtn').addEventListener('click', () => this.clearVariantImage());
-        document.getElementById('addVariantImageUrlBtn').addEventListener('click', () => this.addVariantImageUrl());
-        document.getElementById('variantImageUrlInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); this.addVariantImageUrl(); }
-        });
+        document.getElementById('variantCloudinaryUploadBtn').addEventListener('click', () => document.getElementById('cloudinaryInput').click());
         document.getElementById('variantImagePickerModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('variantImagePickerModal')) this.closeVariantImagePicker();
         });
@@ -328,6 +325,9 @@ class ProductCSVGenerator {
         btn.disabled = false;
         document.getElementById('cloudinaryInput').value = '';
         this.renderUploadedImages();
+        if (document.getElementById('variantImagePickerModal').classList.contains('active')) {
+            this.renderVariantImageGrid();
+        }
     }
 
     addCloudinaryHistory(url, name) {
@@ -1236,7 +1236,7 @@ class ProductCSVGenerator {
         const grid = document.getElementById('variantImageGrid');
         const currentUrl = this.currentEditingVariantImages && this.currentEditingVariantImages[this.variantImagePickerTarget];
         if (this.uploadedImages.length === 0) {
-            grid.innerHTML = '<div style="color: var(--color-text-muted); text-align: center; padding: 20px;">商品画像がアップロードされていません。下のURL入力から追加してください。</div>';
+            grid.innerHTML = '<div style="color: var(--color-text-muted); text-align: center; padding: 20px;">商品画像がアップロードされていません。先に商品画像セクションからCloudinaryへ画像をアップロードしてください。</div>';
             return;
         }
         grid.innerHTML = this.uploadedImages.map(img => `
@@ -1273,16 +1273,6 @@ class ProductCSVGenerator {
         }
         this.closeVariantImagePicker();
         this.renderVariantInventory();
-    }
-
-    addVariantImageUrl() {
-        const input = document.getElementById('variantImageUrlInput');
-        const url = input.value.trim();
-        if (!url) return;
-        this.uploadedImages.push({ id: `img_${Date.now()}_${this.imageCounter++}`, name: 'Variant Image', data: url });
-        this.renderUploadedImages();
-        input.value = '';
-        this.renderVariantImageGrid();
     }
 
     getCategoryCode(name) {

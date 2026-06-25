@@ -56,6 +56,24 @@
                 <div class="modal-body">
                     <form id="productForm">
                         <input type="hidden" id="productId">
+
+                        <!-- 画像セクション -->
+                        <div class="section">
+                            <h3>商品画像</h3>
+                            <div class="form-group">
+                                <label>
+                                    商品画像 (Cloudinary)
+                                    <span class="help-icon" title="商品画像はCloudinary（画像ホスティングサービス）にアップロードして公開URLを取得します。『Cloudinaryへアップロード』で新しい画像をアップロードし、『履歴から選択』で過去にアップロードした画像を再利用できます。画像URLはShopifyのCSVインポートに対応したhttp/https形式で出力されます">?</span>
+                                </label>
+                                <div class="cloudinary-upload-row">
+                                    <input type="file" id="cloudinaryInput" multiple accept="image/*" style="display:none">
+                                    <button type="button" class="btn btn-secondary" id="cloudinaryUploadBtn">Cloudinaryへアップロード</button>
+                                    <button type="button" class="btn btn-secondary" id="openCloudinaryHistory">履歴から選択</button>
+                                </div>
+                                <span class="help-text">アップロード後、公開URLが自動で設定されます</span>
+                                <div id="uploadedImages" class="uploaded-images"></div>
+                            </div>
+                        </div>
                         
                         <!-- 基本情報セクション -->
                         <div class="section">
@@ -319,24 +337,6 @@
                                     </select>
                                     <span class="help-text">配送処理方法</span>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- 画像セクション -->
-                        <div class="section">
-                            <h3>商品画像</h3>
-                            <div class="form-group">
-                                <label>
-                                    商品画像 (Cloudinary)
-                                    <span class="help-icon" title="商品画像はCloudinary（画像ホスティングサービス）にアップロードして公開URLを取得します。『Cloudinaryへアップロード』で新しい画像をアップロードし、『履歴から選択』で過去にアップロードした画像を再利用できます。画像URLはShopifyのCSVインポートに対応したhttp/https形式で出力されます">?</span>
-                                </label>
-                                <div class="cloudinary-upload-row">
-                                    <input type="file" id="cloudinaryInput" multiple accept="image/*" style="display:none">
-                                    <button type="button" class="btn btn-secondary" id="cloudinaryUploadBtn">Cloudinaryへアップロード</button>
-                                    <button type="button" class="btn btn-secondary" id="openCloudinaryHistory">履歴から選択</button>
-                                </div>
-                                <span class="help-text">アップロード後、公開URLが自動で設定されます</span>
-                                <div id="uploadedImages" class="uploaded-images"></div>
                             </div>
                         </div>
 
@@ -658,11 +658,8 @@
             </div>
             <div class="modal-body">
                 <button type="button" class="btn btn-secondary" id="clearVariantImageBtn" style="margin-bottom: 12px; width: 100%;">画像なしにする</button>
+                <button type="button" class="btn btn-primary" id="variantCloudinaryUploadBtn" style="margin-bottom: 12px; width: 100%;">Cloudinaryへアップロード</button>
                 <div id="variantImageGrid" class="variant-image-grid"></div>
-                <div id="variantImageUrlRow" style="margin-top: 12px; display: flex; gap: 8px;">
-                    <input type="text" id="variantImageUrlInput" placeholder="画像URLを入力" style="flex: 1;">
-                    <button type="button" class="btn btn-secondary" id="addVariantImageUrlBtn">追加</button>
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelVariantImagePicker">キャンセル</button>
