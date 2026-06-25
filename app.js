@@ -1551,11 +1551,14 @@ class ProductCSVGenerator {
         // Add additional image rows (2nd, 3rd, etc.)
         if (product.images && product.images.length > 1) {
             for (let i = 1; i < product.images.length; i++) {
-                const imgRow = new Array(this.csvHeaders.length).fill('');
-                imgRow[1] = this.escapeCsv(product.handle);
                 const ext = this.getExternalImageUrl(product.images[i].data);
-                if (ext) { imgRow[37] = this.escapeCsv(ext); imgRow[38] = String(i + 1); }
-                rows.push(imgRow);
+                if (ext) {
+                    const imgRow = new Array(this.csvHeaders.length).fill('');
+                    imgRow[1] = this.escapeCsv(product.handle);
+                    imgRow[37] = this.escapeCsv(ext);
+                    imgRow[38] = String(i + 1);
+                    rows.push(imgRow);
+                }
             }
         }
 
