@@ -1194,44 +1194,189 @@ select {
 
 @media (max-width: 768px) {
     .container {
-        padding: 16px;
+        padding: 12px;
     }
 
     header {
-        padding: 20px 0;
+        padding: 16px 0;
+        margin-bottom: 20px;
     }
 
     header h1 {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
     }
 
     .toolbar {
         flex-direction: column;
         align-items: stretch;
+        gap: 8px;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+    }
+
+    .toolbar > * {
+        width: 100%;
     }
 
     .btn {
         width: 100%;
         justify-content: center;
+        padding: 11px 16px;
+        font-size: 14px;
     }
 
     .products-list {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .modal.active {
+    .product-card {
         padding: 16px;
     }
 
+    .product-card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .product-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .product-card-info {
+        grid-template-columns: 1fr;
+        gap: 6px 0;
+    }
+
+    .modal.active {
+        padding: 0;
+        align-items: flex-end;
+    }
+
     .modal-content {
-        max-height: calc(100vh - 32px);
+        max-height: 92vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-width: 100%;
+    }
+
+    .tag-modal .modal-content {
+        max-width: 100%;
     }
 
     .modal-body {
         padding: 16px;
     }
 
+    .modal-header {
+        padding: 16px 20px;
+    }
+
+    .modal-footer {
+        padding: 12px 20px;
+    }
+
     .form-row {
         grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .tag-input-row {
+        flex-wrap: wrap;
+    }
+
+    .tag-input-row .btn {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .data-add-row,
+    .cloudinary-upload-row,
+    .tag-new-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .data-add-row .btn,
+    .cloudinary-upload-row .btn,
+    .tag-new-row .btn {
+        width: 100%;
+    }
+
+    .tag-checkboxes {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        max-height: 240px;
+    }
+
+    .tag-checkbox-label {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .sku-maps-content {
+        grid-template-columns: 1fr;
+    }
+
+    .sku-maps-panel {
+        padding: 16px;
+    }
+
+    .sku-maps-content,
+    #variantInventoryContainer {
+        overflow-x: auto;
+    }
+
+    .data-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 12px 14px;
+    }
+
+    .data-list-item-info {
+        flex-wrap: wrap;
+        gap: 4px 12px;
+    }
+
+    .data-list-item-remove {
+        align-self: flex-end;
+    }
+
+    .cloudinary-history-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+
+    .section {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px; /* iOS zoom prevention */
+        padding: 10px 12px;
+    }
+
+    .image-item img {
+        width: 72px;
+        height: 72px;
+    }
+
+    .login-box {
+        padding: 32px 24px;
+        max-width: 100%;
+        margin: 0 16px;
+    }
+
+    .login-screen {
+        align-items: flex-start;
+        padding-top: 15vh;
     }
 }
