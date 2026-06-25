@@ -33,6 +33,7 @@ class ProductCSVGenerator {
             'Fulfillment service','Product image URL','Image position','Image alt text',
             'Variant image URL','Gift card','SEO title','SEO description',
             'Color (product.metafields.shopify.color-pattern)',
+            'Size (product.metafields.shopify.size)',
             'Google Shopping / Google product category','Google Shopping / Gender',
             'Google Shopping / Age group','Google Shopping / Manufacturer part number (MPN)',
             'Google Shopping / Ad group name','Google Shopping / Ads labels',
@@ -1495,9 +1496,9 @@ class ProductCSVGenerator {
                 row[5] = this.escapeCsv(product.productType);
                 row[6] = this.escapeCsv(product.tags);
                 row[7] = product.published ? 'TRUE' : 'FALSE';
-                row[41] = this.escapeCsv(product.seoTitle);
-                row[42] = this.escapeCsv(product.seoDescription);
-                row[44] = this.escapeCsv(product.googleShoppingCategory || product.productCategory || '');
+                row[42] = this.escapeCsv(product.seoTitle);
+                row[43] = this.escapeCsv(product.seoDescription);
+                row[45] = this.escapeCsv(product.googleShoppingCategory || product.productCategory || '');
             }
             row[8] = product.status;
             row[9] = this.escapeCsv(variant.sku || product.sku || '');
@@ -1520,30 +1521,56 @@ class ProductCSVGenerator {
             row[33] = 'g';
             row[34] = product.requiresShipping ? 'TRUE' : 'FALSE';
             row[35] = product.fulfillmentService;
+            // First image goes on first variant row
             if (index === 0 && product.images && product.images.length > 0) {
                 const ext0 = this.getExternalImageUrl(product.images[0].data);
-                if (ext0) { row[36] = this.escapeCsv(ext0); row[37] = '1'; }
+                if (ext0) { row[37] = this.escapeCsv(ext0); row[38] = '1'; }
             }
             // Per-variant image
             if (product.variantImages && variant.key && product.variantImages[variant.key]) {
                 const varImgUrl = this.getExternalImageUrl(product.variantImages[variant.key]);
-                if (varImgUrl) row[39] = this.escapeCsv(varImgUrl);
+                if (varImgUrl) row[40] = this.escapeCsv(varImgUrl);
             }
-            row[40] = product.giftCard ? 'TRUE' : 'FALSE';
-            row[57] = this.escapeCsv(product.brandCode || '');
-            row[58] = this.escapeCsv(product.skuCategory || '');
-            row[59] = this.escapeCsv(product.skuSerial || '');
-            row[60] = this.escapeCsv(product.season || '');
-            row[61] = this.escapeCsv(product.brandName || '');
+            row[41] = product.giftCard ? 'TRUE' : 'FALSE';
+            row[58] = this.escapeCsv(product.brandCode || '');
+            row[59] = this.escapeCsv(product.skuCategory || '');
+            row[60] = this.escapeCsv(product.skuSerial || '');
+            row[61] = this.escapeCsv(product.season || '');
+            row[62] = this.escapeCsv(product.brandName || '');
+            // First collection on first variant row
             if (index === 0 && product.collections) {
                 const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
                 if (firstCollection) {
-                    row[62] = this.escapeCsv(firstCollection);
-                    row[63] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
+                    row[63] = this.escapeCsv(firstCollection);
+                    row[64] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
                 }
             }
             rows.push(row);
         });
+
+        // Add additional image rows (2nd, 3rd, etc.)
+        if (product.images && product.images.length > 1) {
+            for (let i = 1; i < product.images.length; i++) {
+                const imgRow = new Array(this.csvHeaders.length).fill('');
+                imgRow[1] = this.escapeCsv(product.handle);
+                const ext = this.getExternalImageUrl(product.images[i].data);
+                if (ext) { imgRow[37] = this.escapeCsv(ext); imgRow[38] = String(i + 1); }
+                rows.push(imgRow);
+            }
+        }
+
+        // Add additional collection rows (2nd, 3rd, etc.)
+        if (product.collections) {
+            const collectionList = product.collections.split(',').map(c => c.trim()).filter(c => c);
+            for (let i = 1; i < collectionList.length; i++) {
+                const colRow = new Array(this.csvHeaders.length).fill('');
+                colRow[1] = this.escapeCsv(product.handle);
+                colRow[63] = this.escapeCsv(collectionList[i]);
+                colRow[64] = this.escapeCsv(this.generateCollectionHandle(collectionList[i]));
+                rows.push(colRow);
+            }
+        }
+
         if (rows.length === 0) {
             const row = new Array(this.csvHeaders.length).fill('');
             row[0] = this.escapeCsv(product.title); row[1] = this.escapeCsv(product.handle); row[2] = this.escapeCsv(product.description);
@@ -1554,18 +1581,18 @@ class ProductCSVGenerator {
             row[34] = product.requiresShipping ? 'TRUE' : 'FALSE'; row[35] = product.fulfillmentService;
             if (product.images && product.images.length > 0) {
                 const ext0 = this.getExternalImageUrl(product.images[0].data);
-                if (ext0) { row[36] = this.escapeCsv(ext0); row[37] = '1'; }
+                if (ext0) { row[37] = this.escapeCsv(ext0); row[38] = '1'; }
             }
-            row[57] = this.escapeCsv(product.brandCode || '');
-            row[58] = this.escapeCsv(product.skuCategory || '');
-            row[59] = this.escapeCsv(product.skuSerial || '');
-            row[60] = this.escapeCsv(product.season || '');
-            row[61] = this.escapeCsv(product.brandName || '');
+            row[58] = this.escapeCsv(product.brandCode || '');
+            row[59] = this.escapeCsv(product.skuCategory || '');
+            row[60] = this.escapeCsv(product.skuSerial || '');
+            row[61] = this.escapeCsv(product.season || '');
+            row[62] = this.escapeCsv(product.brandName || '');
             if (product.collections) {
                 const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
                 if (firstCollection) {
-                    row[62] = this.escapeCsv(firstCollection);
-                    row[63] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
+                    row[63] = this.escapeCsv(firstCollection);
+                    row[64] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
                 }
             }
             rows.push(row);
