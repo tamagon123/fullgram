@@ -225,12 +225,42 @@ class ProductCSVGenerator {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', () => this.renderVariantInventory());
         });
+        ['title','vendor','description'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => this.updateSeoFields());
+        });
+        document.getElementById('seoDescription').addEventListener('input', () => {
+            this.seoDescriptionManuallyEdited = true;
+        });
     }
 
     generateHandle(title) {
         if (!title) return '';
         if (/[^\x00-\x7F]/.test(title)) return '';
         return title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
+    }
+
+    updateSeoFields() {
+        const title = document.getElementById('title').value.trim();
+        const vendor = document.getElementById('vendor').value.trim() || 'Your Brand';
+        const description = document.getElementById('description').value.trim();
+
+        // Auto-generate SEO title: Title | Brand (max 60 chars)
+        if (title) {
+            let seoTitle = `${title} | ${vendor}`;
+            if (seoTitle.length > 60) {
+                seoTitle = `${title.substring(0, 57 - vendor.length)}... | ${vendor}`;
+            }
+            document.getElementById('seoTitle').value = seoTitle;
+        } else {
+            document.getElementById('seoTitle').value = '';
+        }
+
+        // Auto-generate SEO description from description (max 160 chars) unless manually edited
+        if (!this.seoDescriptionManuallyEdited && description) {
+            const plainText = description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+            document.getElementById('seoDescription').value = plainText.substring(0, 160);
+        }
     }
 
     async handleCloudinaryUpload(files) {
@@ -800,6 +830,7 @@ class ProductCSVGenerator {
         document.getElementById('brandCode').value = '';
         document.getElementById('season').value = '';
         document.getElementById('skuCategory').value = '';
+        this.seoDescriptionManuallyEdited = false;
         document.getElementById('variantInventorySection').style.display = 'none';
         document.getElementById('variantInventoryContainer').innerHTML = '';
         const simpleGroup = document.getElementById('simpleInventoryGroup');
@@ -831,8 +862,10 @@ class ProductCSVGenerator {
         document.getElementById('fulfillmentService').value = product.fulfillmentService || 'manual';
         document.getElementById('sku').value = product.sku || '';
         document.getElementById('barcode').value = product.barcode || '';
+        this.seoDescriptionManuallyEdited = !!(product.seoDescription && product.seoDescription.trim());
         document.getElementById('seoTitle').value = product.seoTitle || '';
         document.getElementById('seoDescription').value = product.seoDescription || '';
+        this.updateSeoFields();
         document.getElementById('giftCard').value = product.giftCard ? 'true' : 'false';
         document.getElementById('option1Name').value = product.option1Name || '';
         document.getElementById('option1Values').value = product.option1Values || '';

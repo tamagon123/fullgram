@@ -499,18 +499,18 @@
                                 <div class="form-group">
                                     <label for="seoTitle">
                                         SEOタイトル
-                                        <span class="help-icon" title="Google・Yahoo等の検索結果に表示されるページタイトル。商品名よりも検索キーワードを意識した文言を推奨。70文字以内が表示上限。未入力の場合は『商品名』が使用されます。例：『スリムフィットデニムジャケット メンズ アウター｜FULLGRAM』">?</span>
+                                        <span class="help-icon" title="Google・Yahoo等の検索結果に表示されるページタイトル。商品名とブランド名から自動生成されます。手動で編集も可能です">?</span>
                                     </label>
-                                    <input type="text" id="seoTitle">
-                                    <span class="help-text">検索結果に表示されるタイトル（70文字以内推奨）</span>
+                                    <input type="text" id="seoTitle" readonly>
+                                    <span class="help-text">商品名とブランド名から自動生成されます</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="seoDescription">
                                         SEO説明
-                                        <span class="help-icon" title="検索結果のタイトル下に表示される説明文（メタディスクリプション）。320文字以内が推奨。商品の特徴・対象層・用途を簡潔に記載し、クリック率（CTR）向上を狙います。未入力の場合は商品説明の先頭が自動抽出されます">?</span>
+                                        <span class="help-icon" title="検索結果のタイトル下に表示される説明文（メタディスクリプション）。商品詳細から自動抽出されますが、検索結果用に最適化するため手動での変更を強く推奨します。160文字以内が推奨">?</span>
                                     </label>
                                     <input type="text" id="seoDescription">
-                                    <span class="help-text">検索結果に表示される説明（320文字以内推奨）</span>
+                                    <span class="help-text" style="color: var(--color-warn);">商品詳細から自動反映されますが、検索結果用に手動で変更することを推奨します（160文字以内）</span>
                                 </div>
                             </div>
 
