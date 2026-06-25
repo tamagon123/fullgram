@@ -40,24 +40,28 @@ class ProductCSVGenerator {
             'Google Shopping / Custom label 0','Google Shopping / Custom label 1',
             'Google Shopping / Custom label 2','Google Shopping / Custom label 3',
             'Google Shopping / Custom label 4',
-            'Brand Code','SKU Category','SKU Serial','Season','Brand Name'
+            'Brand Code','SKU Category','SKU Serial','Season','Brand Name',
+            'Collection','Collection Handle'
         ];
         
         this.skuMaps = { category: {}, color: {}, size: {} };
         this.dataSizes = { shoes: {}, clothing: {}, other: {} };
         this.dataBrands = {};
         this.dataTags = [];
+        this.dataCollections = [];
+        this.tempSelectedCollections = new Set();
         this.loadData();
     }
 
     async loadData() {
         try {
-            const [cat, col, szRaw, br, tg] = await Promise.all([
+            const [cat, col, szRaw, br, tg, cl] = await Promise.all([
                 fetch('data/categories.json').then(r => r.json()).catch(() => ({})),
                 fetch('data/colors.json').then(r => r.json()).catch(() => ({})),
                 fetch('data/sizes.json').then(r => r.json()).catch(() => ({})),
                 fetch('data/brands.json').then(r => r.json()).catch(() => ({})),
-                fetch('data/tags.json').then(r => r.json()).catch(() => ({ tags: [] }))
+                fetch('data/tags.json').then(r => r.json()).catch(() => ({ tags: [] })),
+                fetch('data/collections.json').then(r => r.json()).catch(() => ({ collections: [] }))
             ]);
             this.skuMaps.category = cat;
             this.skuMaps.color = col;
@@ -88,6 +92,7 @@ class ProductCSVGenerator {
             }
             this.dataBrands = br;
             this.dataTags = tg.tags || [];
+            this.dataCollections = cl.collections || [];
         } catch (e) {
             console.warn('Data files not loaded:', e);
         }
@@ -154,6 +159,7 @@ class ProductCSVGenerator {
         document.getElementById('addCategoryBtn').addEventListener('click', () => this.addDataItem('categories'));
         document.getElementById('addColorBtn').addEventListener('click', () => this.addDataItem('colors'));
         document.getElementById('addTagBtn').addEventListener('click', () => this.addDataItem('tags'));
+        document.getElementById('addCollectionBtn').addEventListener('click', () => this.addDataItem('collections'));
         document.querySelectorAll('.size-type-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchSizeTypeTab(tab.dataset.sizeType));
         });
@@ -190,6 +196,18 @@ class ProductCSVGenerator {
         });
         document.getElementById('tagPickerModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('tagPickerModal')) this.closeTagPicker();
+        });
+
+        document.getElementById('openCollectionPicker').addEventListener('click', () => this.openCollectionPicker());
+        document.getElementById('closeCollectionPicker').addEventListener('click', () => this.closeCollectionPicker());
+        document.getElementById('cancelCollectionPicker').addEventListener('click', () => this.closeCollectionPicker());
+        document.getElementById('applyCollectionsBtn').addEventListener('click', () => this.applyCollections());
+        document.getElementById('addNewCollectionBtn').addEventListener('click', () => this.addNewCollection());
+        document.getElementById('newCollectionInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); this.addNewCollection(); }
+        });
+        document.getElementById('collectionPickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('collectionPickerModal')) this.closeCollectionPicker();
         });
 
         document.getElementById('openOption1Picker').addEventListener('click', () => this.openOptionPicker(1));
@@ -238,6 +256,11 @@ class ProductCSVGenerator {
         if (!title) return '';
         if (/[^\x00-\x7F]/.test(title)) return '';
         return title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
+    }
+
+    generateCollectionHandle(name) {
+        if (!name) return '';
+        return name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
     }
 
     updateSeoFields() {
@@ -477,6 +500,18 @@ class ProductCSVGenerator {
                 <button class="data-list-item-remove" onclick="app.removeDataItem('tags',${i})">&times;</button>
             </div>
         `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
+
+        // Collections
+        const collectionsList = document.getElementById('collectionsList');
+        const sortedCollections = [...this.dataCollections].sort((a, b) => a.localeCompare(b));
+        collectionsList.innerHTML = sortedCollections.length ? sortedCollections.map((col, i) => `
+            <div class="data-list-item">
+                <div class="data-list-item-info">
+                    <span class="data-list-item-name">${this.escapeHtml(col)}</span>
+                </div>
+                <button class="data-list-item-remove" onclick="app.removeDataItem('collections',${i})">&times;</button>
+            </div>
+        `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
     }
 
     addDataItem(type) {
@@ -514,6 +549,11 @@ class ProductCSVGenerator {
             this.dataTags.push(name);
             this.customTags.push(name);
             document.getElementById('newTagName').value = '';
+        } else if (type === 'collections') {
+            const name = document.getElementById('newCollectionName').value.trim();
+            if (!name || this.dataCollections.includes(name)) return;
+            this.dataCollections.push(name);
+            document.getElementById('newCollectionName').value = '';
         }
         this.renderDataLists();
     }
@@ -530,6 +570,9 @@ class ProductCSVGenerator {
         } else if (type === 'tags') {
             const idx = parseInt(key);
             if (!isNaN(idx)) this.dataTags.splice(idx, 1);
+        } else if (type === 'collections') {
+            const idx = parseInt(key);
+            if (!isNaN(idx)) this.dataCollections.splice(idx, 1);
         }
         this.renderDataLists();
     }
@@ -614,7 +657,8 @@ class ProductCSVGenerator {
             categories: this.skuMaps.category,
             colors: this.skuMaps.color,
             sizes: this.skuMaps.size,
-            tags: this.dataTags
+            tags: this.dataTags,
+            collections: this.dataCollections
         };
         const content = JSON.stringify(data, null, 2);
         const blob = new Blob([content], { type: 'application/json' });
@@ -888,6 +932,7 @@ class ProductCSVGenerator {
         }
         document.getElementById('skuCategory').value = product.skuCategory || '';
         document.getElementById('skuSerial').value = product.skuSerial || '';
+        document.getElementById('collections').value = product.collections || '';
         if (product.images) {
             this.uploadedImages = [...product.images];
             this.renderUploadedImages();
@@ -957,6 +1002,7 @@ class ProductCSVGenerator {
             brandCode: document.getElementById('brandCode').value,
             season: document.getElementById('season').value,
             skuCategory: document.getElementById('skuCategory').value,
+            collections: document.getElementById('collections').value,
             images: [...this.uploadedImages]
         };
         if (this.currentEditingId) {
@@ -1097,6 +1143,53 @@ class ProductCSVGenerator {
         const tags = Array.from(this.tempSelectedTags).join(', ');
         document.getElementById('tags').value = tags;
         this.closeTagPicker();
+    }
+
+    openCollectionPicker() {
+        const current = document.getElementById('collections').value.split(',').map(c => c.trim()).filter(c => c);
+        this.tempSelectedCollections = new Set(current);
+        document.getElementById('collectionPickerModal').classList.add('active');
+        this.renderCollectionCheckboxes();
+    }
+
+    closeCollectionPicker() {
+        document.getElementById('collectionPickerModal').classList.remove('active');
+        this.tempSelectedCollections.clear();
+    }
+
+    renderCollectionCheckboxes() {
+        const container = document.getElementById('collectionCheckboxes');
+        const allCollections = [...new Set([...this.dataCollections])].sort((a, b) => a.localeCompare(b));
+        container.innerHTML = allCollections.map(tag => `
+            <label class="tag-checkbox-label">
+                <input type="checkbox" value="${this.escapeHtml(tag)}" ${this.tempSelectedCollections.has(tag) ? 'checked' : ''}>
+                <span>${this.escapeHtml(tag)}</span>
+            </label>
+        `).join('');
+        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                if (e.target.checked) this.tempSelectedCollections.add(e.target.value);
+                else this.tempSelectedCollections.delete(e.target.value);
+            });
+        });
+    }
+
+    addNewCollection() {
+        const input = document.getElementById('newCollectionInput');
+        const name = input.value.trim();
+        if (!name) return;
+        if (!this.dataCollections.includes(name)) {
+            this.dataCollections.push(name);
+        }
+        this.tempSelectedCollections.add(name);
+        input.value = '';
+        this.renderCollectionCheckboxes();
+    }
+
+    applyCollections() {
+        const collections = Array.from(this.tempSelectedCollections).sort((a, b) => a.localeCompare(b)).join(', ');
+        document.getElementById('collections').value = collections;
+        this.closeCollectionPicker();
     }
 
     getCategoryCode(name) {
@@ -1332,6 +1425,13 @@ class ProductCSVGenerator {
             row[59] = this.escapeCsv(product.skuSerial || '');
             row[60] = this.escapeCsv(product.season || '');
             row[61] = this.escapeCsv(product.brandName || '');
+            if (index === 0 && product.collections) {
+                const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
+                if (firstCollection) {
+                    row[62] = this.escapeCsv(firstCollection);
+                    row[63] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
+                }
+            }
             rows.push(row);
         });
         if (rows.length === 0) {
@@ -1351,6 +1451,13 @@ class ProductCSVGenerator {
             row[59] = this.escapeCsv(product.skuSerial || '');
             row[60] = this.escapeCsv(product.season || '');
             row[61] = this.escapeCsv(product.brandName || '');
+            if (product.collections) {
+                const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
+                if (firstCollection) {
+                    row[62] = this.escapeCsv(firstCollection);
+                    row[63] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
+                }
+            }
             rows.push(row);
         }
         return rows;

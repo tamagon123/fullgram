@@ -182,6 +182,17 @@
                                     </div>
                                     <span class="help-text">「タグ選択」ボタンからチェックで選ぶか、新規追加できます</span>
                                 </div>
+                                <div class="form-group">
+                                    <label for="collections">
+                                        コレクション (Collections)
+                                        <span class="help-icon" title="商品を分類するコレクション。カンマ区切りで複数設定可能。Shopifyのコレクションに紐づけられます。JSONに登録されたコレクションからのみ選択できます">?</span>
+                                    </label>
+                                    <div class="tag-input-row">
+                                        <input type="text" id="collections" placeholder="collection1, collection2" readonly>
+                                        <button type="button" class="btn btn-secondary" id="openCollectionPicker">選択</button>
+                                    </div>
+                                    <span class="help-text">「選択」ボタンからコレクションを選んでください</span>
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -617,6 +628,27 @@
         </div>
     </div>
 
+    <!-- コレクション選択モーダル -->
+    <div id="collectionPickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>コレクションを選択</h2>
+                <button class="close-btn" id="closeCollectionPicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tag-new-row">
+                    <input type="text" id="newCollectionInput" placeholder="新しいコレクション名">
+                    <button type="button" class="btn btn-secondary" id="addNewCollectionBtn">追加</button>
+                </div>
+                <div id="collectionCheckboxes" class="tag-checkboxes"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelCollectionPicker">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="applyCollectionsBtn">確定</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cloudinary履歴選択モーダル -->
     <div id="cloudinaryHistoryModal" class="modal tag-modal">
         <div class="modal-content tag-modal-content">
@@ -650,6 +682,7 @@
                     <button type="button" class="data-tab" data-tab="colors">カラー</button>
                     <button type="button" class="data-tab" data-tab="sizes">サイズ</button>
                     <button type="button" class="data-tab" data-tab="tags">タグ</button>
+                    <button type="button" class="data-tab" data-tab="collections">コレクション</button>
                 </div>
                 <div class="data-tab-content active" id="tab-brands">
                     <div class="data-add-row">
@@ -714,6 +747,13 @@
                         <button type="button" class="btn btn-primary" id="addTagBtn">追加</button>
                     </div>
                     <div id="tagsList" class="data-list"></div>
+                </div>
+                <div class="data-tab-content" id="tab-collections">
+                    <div class="data-add-row">
+                        <input type="text" id="newCollectionName" placeholder="コレクション名">
+                        <button type="button" class="btn btn-primary" id="addCollectionBtn">追加</button>
+                    </div>
+                    <div id="collectionsList" class="data-list"></div>
                 </div>
             </div>
             <div class="modal-footer">
