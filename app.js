@@ -42,7 +42,7 @@ class ProductCSVGenerator {
             'Google Shopping / Custom label 2','Google Shopping / Custom label 3',
             'Google Shopping / Custom label 4',
             'Brand Code','SKU Category','SKU Serial','Season','Brand Name',
-            'Collection','Collection Handle'
+            'Collection'
         ];
         
         this.skuMaps = { category: {}, color: {}, size: {} };
@@ -50,7 +50,7 @@ class ProductCSVGenerator {
         this.dataBrands = {};
         this.dataTags = [];
         this.dataCollections = [];
-        this.tempSelectedCollections = new Set();
+        this.tempSelectedCollection = '';
         this.currentEditingVariantImages = null;
         this.variantImagePickerTarget = null;
         this.loadData();
@@ -1176,30 +1176,29 @@ class ProductCSVGenerator {
     }
 
     openCollectionPicker() {
-        const current = document.getElementById('collections').value.split(',').map(c => c.trim()).filter(c => c);
-        this.tempSelectedCollections = new Set(current);
+        const current = document.getElementById('collections').value.trim();
+        this.tempSelectedCollection = current;
         document.getElementById('collectionPickerModal').classList.add('active');
-        this.renderCollectionCheckboxes();
+        this.renderCollectionRadios();
     }
 
     closeCollectionPicker() {
         document.getElementById('collectionPickerModal').classList.remove('active');
-        this.tempSelectedCollections.clear();
+        this.tempSelectedCollection = '';
     }
 
-    renderCollectionCheckboxes() {
+    renderCollectionRadios() {
         const container = document.getElementById('collectionCheckboxes');
         const allCollections = [...new Set([...this.dataCollections])].sort((a, b) => a.localeCompare(b));
         container.innerHTML = allCollections.map(tag => `
             <label class="tag-checkbox-label">
-                <input type="checkbox" value="${this.escapeHtml(tag)}" ${this.tempSelectedCollections.has(tag) ? 'checked' : ''}>
+                <input type="radio" name="collectionRadio" value="${this.escapeHtml(tag)}" ${this.tempSelectedCollection === tag ? 'checked' : ''}>
                 <span>${this.escapeHtml(tag)}</span>
             </label>
         `).join('');
-        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', (e) => {
-                if (e.target.checked) this.tempSelectedCollections.add(e.target.value);
-                else this.tempSelectedCollections.delete(e.target.value);
+        container.querySelectorAll('input[type="radio"]').forEach(rb => {
+            rb.addEventListener('change', (e) => {
+                if (e.target.checked) this.tempSelectedCollection = e.target.value;
             });
         });
     }
@@ -1211,14 +1210,13 @@ class ProductCSVGenerator {
         if (!this.dataCollections.includes(name)) {
             this.dataCollections.push(name);
         }
-        this.tempSelectedCollections.add(name);
+        this.tempSelectedCollection = name;
         input.value = '';
-        this.renderCollectionCheckboxes();
+        this.renderCollectionRadios();
     }
 
     applyCollections() {
-        const collections = Array.from(this.tempSelectedCollections).sort((a, b) => a.localeCompare(b)).join(', ');
-        document.getElementById('collections').value = collections;
+        document.getElementById('collections').value = this.tempSelectedCollection;
         this.closeCollectionPicker();
     }
 
@@ -1539,11 +1537,8 @@ class ProductCSVGenerator {
             row[62] = this.escapeCsv(product.brandName || '');
             // First collection on first variant row
             if (index === 0 && product.collections) {
-                const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
-                if (firstCollection) {
-                    row[63] = this.escapeCsv(firstCollection);
-                    row[64] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
-                }
+                const collection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
+                if (collection) row[63] = this.escapeCsv(collection);
             }
             rows.push(row);
         });
@@ -1562,17 +1557,6 @@ class ProductCSVGenerator {
             }
         }
 
-        // Add additional collection rows (2nd, 3rd, etc.)
-        if (product.collections) {
-            const collectionList = product.collections.split(',').map(c => c.trim()).filter(c => c);
-            for (let i = 1; i < collectionList.length; i++) {
-                const colRow = new Array(this.csvHeaders.length).fill('');
-                colRow[1] = this.escapeCsv(product.handle);
-                colRow[63] = this.escapeCsv(collectionList[i]);
-                colRow[64] = this.escapeCsv(this.generateCollectionHandle(collectionList[i]));
-                rows.push(colRow);
-            }
-        }
 
         if (rows.length === 0) {
             const row = new Array(this.csvHeaders.length).fill('');
@@ -1592,11 +1576,8 @@ class ProductCSVGenerator {
             row[61] = this.escapeCsv(product.season || '');
             row[62] = this.escapeCsv(product.brandName || '');
             if (product.collections) {
-                const firstCollection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
-                if (firstCollection) {
-                    row[63] = this.escapeCsv(firstCollection);
-                    row[64] = this.escapeCsv(this.generateCollectionHandle(firstCollection));
-                }
+                const collection = product.collections.split(',').map(c => c.trim()).filter(c => c)[0];
+                if (collection) row[63] = this.escapeCsv(collection);
             }
             rows.push(row);
         }
