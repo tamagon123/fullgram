@@ -1496,8 +1496,8 @@ class ProductCSVGenerator {
                 row[5] = this.escapeCsv(product.productType);
                 row[6] = this.escapeCsv(product.tags);
                 row[7] = product.published ? 'TRUE' : 'FALSE';
-                row[42] = this.escapeCsv(product.seoTitle);
-                row[43] = this.escapeCsv(product.seoDescription);
+                row[41] = this.escapeCsv(product.seoTitle);
+                row[42] = this.escapeCsv(product.seoDescription);
                 row[45] = this.escapeCsv(product.googleShoppingCategory || product.productCategory || '');
             }
             row[8] = product.status;
@@ -1524,14 +1524,14 @@ class ProductCSVGenerator {
             // First image goes on first variant row
             if (index === 0 && product.images && product.images.length > 0) {
                 const ext0 = this.getExternalImageUrl(product.images[0].data);
-                if (ext0) { row[37] = this.escapeCsv(ext0); row[38] = '1'; }
+                if (ext0) { row[36] = this.escapeCsv(ext0); row[37] = '1'; }
             }
             // Per-variant image
             if (product.variantImages && variant.key && product.variantImages[variant.key]) {
                 const varImgUrl = this.getExternalImageUrl(product.variantImages[variant.key]);
-                if (varImgUrl) row[40] = this.escapeCsv(varImgUrl);
+                if (varImgUrl) row[39] = this.escapeCsv(varImgUrl);
             }
-            row[41] = product.giftCard ? 'TRUE' : 'FALSE';
+            row[40] = product.giftCard ? 'TRUE' : 'FALSE';
             row[58] = this.escapeCsv(product.brandCode || '');
             row[59] = this.escapeCsv(product.skuCategory || '');
             row[60] = this.escapeCsv(product.skuSerial || '');
@@ -1555,8 +1555,8 @@ class ProductCSVGenerator {
                 if (ext) {
                     const imgRow = new Array(this.csvHeaders.length).fill('');
                     imgRow[1] = this.escapeCsv(product.handle);
-                    imgRow[37] = this.escapeCsv(ext);
-                    imgRow[38] = String(i + 1);
+                    imgRow[36] = this.escapeCsv(ext);
+                    imgRow[37] = String(i + 1);
                     rows.push(imgRow);
                 }
             }
@@ -1584,7 +1584,7 @@ class ProductCSVGenerator {
             row[34] = product.requiresShipping ? 'TRUE' : 'FALSE'; row[35] = product.fulfillmentService;
             if (product.images && product.images.length > 0) {
                 const ext0 = this.getExternalImageUrl(product.images[0].data);
-                if (ext0) { row[37] = this.escapeCsv(ext0); row[38] = '1'; }
+                if (ext0) { row[36] = this.escapeCsv(ext0); row[37] = '1'; }
             }
             row[58] = this.escapeCsv(product.brandCode || '');
             row[59] = this.escapeCsv(product.skuCategory || '');
