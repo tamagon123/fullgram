@@ -271,7 +271,11 @@ class ProductCSVGenerator {
 
     generateCollectionHandle(name) {
         if (!name) return '';
-        return name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+        return name.toLowerCase()
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()・]/g, '-')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
     }
 
     updateSeoFields() {
