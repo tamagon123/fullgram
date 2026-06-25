@@ -649,6 +649,27 @@
         </div>
     </div>
 
+    <!-- バリエーション画像選択モーダル -->
+    <div id="variantImagePickerModal" class="modal tag-modal">
+        <div class="modal-content tag-modal-content">
+            <div class="modal-header">
+                <h2>バリエーション画像を選択</h2>
+                <button class="close-btn" id="closeVariantImagePicker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="btn btn-secondary" id="clearVariantImageBtn" style="margin-bottom: 12px; width: 100%;">画像なしにする</button>
+                <div id="variantImageGrid" class="variant-image-grid"></div>
+                <div id="variantImageUrlRow" style="margin-top: 12px; display: flex; gap: 8px;">
+                    <input type="text" id="variantImageUrlInput" placeholder="画像URLを入力" style="flex: 1;">
+                    <button type="button" class="btn btn-secondary" id="addVariantImageUrlBtn">追加</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelVariantImagePicker">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cloudinary履歴選択モーダル -->
     <div id="cloudinaryHistoryModal" class="modal tag-modal">
         <div class="modal-content tag-modal-content">

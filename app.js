@@ -50,6 +50,8 @@ class ProductCSVGenerator {
         this.dataTags = [];
         this.dataCollections = [];
         this.tempSelectedCollections = new Set();
+        this.currentEditingVariantImages = null;
+        this.variantImagePickerTarget = null;
         this.loadData();
     }
 
@@ -208,6 +210,17 @@ class ProductCSVGenerator {
         });
         document.getElementById('collectionPickerModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('collectionPickerModal')) this.closeCollectionPicker();
+        });
+
+        document.getElementById('closeVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
+        document.getElementById('cancelVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
+        document.getElementById('clearVariantImageBtn').addEventListener('click', () => this.clearVariantImage());
+        document.getElementById('addVariantImageUrlBtn').addEventListener('click', () => this.addVariantImageUrl());
+        document.getElementById('variantImageUrlInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); this.addVariantImageUrl(); }
+        });
+        document.getElementById('variantImagePickerModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('variantImagePickerModal')) this.closeVariantImagePicker();
         });
 
         document.getElementById('openOption1Picker').addEventListener('click', () => this.openOptionPicker(1));
@@ -380,10 +393,12 @@ class ProductCSVGenerator {
         this.currentEditingId = productId;
         this.uploadedImages = [];
         this.currentEditingVariantInventory = null;
+        this.currentEditingVariantImages = null;
         if (productId) {
             const product = this.products.find(p => p.id === productId);
             if (product) {
                 this.currentEditingVariantInventory = product.variantInventory || null;
+                this.currentEditingVariantImages = product.variantImages ? {...product.variantImages} : null;
                 this.fillForm(product);
                 this.renderVariantInventory();
             }
@@ -875,6 +890,7 @@ class ProductCSVGenerator {
         document.getElementById('season').value = '';
         document.getElementById('skuCategory').value = '';
         this.seoDescriptionManuallyEdited = false;
+        this.currentEditingVariantImages = null;
         document.getElementById('variantInventorySection').style.display = 'none';
         document.getElementById('variantInventoryContainer').innerHTML = '';
         const simpleGroup = document.getElementById('simpleInventoryGroup');
@@ -956,10 +972,22 @@ class ProductCSVGenerator {
         const handleInput = document.getElementById('handle').value.trim();
 
         const variantInventory = {};
+        const variantImages = {};
         const section = document.getElementById('variantInventorySection');
         if (section && section.style.display !== 'none') {
             document.querySelectorAll('.variant-qty-input').forEach(input => {
                 variantInventory[input.dataset.key] = parseInt(input.value) || 0;
+            });
+            document.querySelectorAll('.variant-image-input').forEach(input => {
+                const url = input.value.trim();
+                if (url) {
+                    variantImages[input.dataset.key] = url;
+                    // Add to uploadedImages if not already present
+                    const exists = this.uploadedImages.some(img => img.data === url);
+                    if (!exists) {
+                        this.uploadedImages.push({ id: `img_${Date.now()}_${this.imageCounter++}`, name: 'Variant Image', data: url });
+                    }
+                }
             });
         }
         const simpleQty = parseInt(document.getElementById('inventoryQty').value) || 0;
@@ -1003,7 +1031,8 @@ class ProductCSVGenerator {
             season: document.getElementById('season').value,
             skuCategory: document.getElementById('skuCategory').value,
             collections: document.getElementById('collections').value,
-            images: [...this.uploadedImages]
+            images: [...this.uploadedImages],
+            variantImages: Object.keys(variantImages).length > 0 ? variantImages : null
         };
         if (this.currentEditingId) {
             const index = this.products.findIndex(p => p.id === this.currentEditingId);
@@ -1192,6 +1221,70 @@ class ProductCSVGenerator {
         this.closeCollectionPicker();
     }
 
+    openVariantImagePicker(variantKey) {
+        this.variantImagePickerTarget = variantKey;
+        document.getElementById('variantImagePickerModal').classList.add('active');
+        this.renderVariantImageGrid();
+    }
+
+    closeVariantImagePicker() {
+        document.getElementById('variantImagePickerModal').classList.remove('active');
+        this.variantImagePickerTarget = null;
+    }
+
+    renderVariantImageGrid() {
+        const grid = document.getElementById('variantImageGrid');
+        const currentUrl = this.currentEditingVariantImages && this.currentEditingVariantImages[this.variantImagePickerTarget];
+        if (this.uploadedImages.length === 0) {
+            grid.innerHTML = '<div style="color: var(--color-text-muted); text-align: center; padding: 20px;">商品画像がアップロードされていません。下のURL入力から追加してください。</div>';
+            return;
+        }
+        grid.innerHTML = this.uploadedImages.map(img => `
+            <div class="variant-image-item ${img.data === currentUrl ? 'selected' : ''}" data-url="${this.escapeHtml(img.data)}">
+                <img src="${this.escapeHtml(img.data)}" alt="${this.escapeHtml(img.name)}">
+                <span class="variant-image-name">${this.escapeHtml(img.name)}</span>
+            </div>
+        `).join('');
+        grid.querySelectorAll('.variant-image-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.selectVariantImage(item.dataset.url);
+            });
+        });
+    }
+
+    selectVariantImage(url) {
+        if (!this.variantImagePickerTarget) return;
+        if (!this.currentEditingVariantImages) this.currentEditingVariantImages = {};
+        this.currentEditingVariantImages[this.variantImagePickerTarget] = url;
+        // Add to uploadedImages if not already present
+        const exists = this.uploadedImages.some(img => img.data === url);
+        if (!exists) {
+            this.uploadedImages.push({ id: `img_${Date.now()}_${this.imageCounter++}`, name: 'Variant Image', data: url });
+            this.renderUploadedImages();
+        }
+        this.closeVariantImagePicker();
+        this.renderVariantInventory();
+    }
+
+    clearVariantImage() {
+        if (!this.variantImagePickerTarget) return;
+        if (this.currentEditingVariantImages) {
+            delete this.currentEditingVariantImages[this.variantImagePickerTarget];
+        }
+        this.closeVariantImagePicker();
+        this.renderVariantInventory();
+    }
+
+    addVariantImageUrl() {
+        const input = document.getElementById('variantImageUrlInput');
+        const url = input.value.trim();
+        if (!url) return;
+        this.uploadedImages.push({ id: `img_${Date.now()}_${this.imageCounter++}`, name: 'Variant Image', data: url });
+        this.renderUploadedImages();
+        input.value = '';
+        this.renderVariantImageGrid();
+    }
+
     getCategoryCode(name) {
         if (!name) return '';
         const key = Object.keys(this.skuMaps.category).find(k => k.toLowerCase() === name.toLowerCase());
@@ -1318,17 +1411,41 @@ class ProductCSVGenerator {
             if (opt1Name && v.v1) cells.push(`<td>${this.escapeHtml(v.v1)}</td>`);
             if (opt2Name && v.v2) cells.push(`<td>${this.escapeHtml(v.v2)}</td>`);
             if (opt3Name && v.v3) cells.push(`<td>${this.escapeHtml(v.v3)}</td>`);
-            const existing = this.currentEditingVariantInventory && this.currentEditingVariantInventory[v.key];
-            const qty = existing !== undefined ? existing : (this.currentEditingVariantInventory ? 0 : parseInt(document.getElementById('inventoryQty').value) || 0);
-            return `<tr>${cells.join('')}<td><input type="number" class="variant-qty-input" data-key="${this.escapeHtml(v.key)}" value="${qty}" min="0"></td></tr>`;
+            const existingQty = this.currentEditingVariantInventory && this.currentEditingVariantInventory[v.key];
+            const qty = existingQty !== undefined ? existingQty : (this.currentEditingVariantInventory ? 0 : parseInt(document.getElementById('inventoryQty').value) || 0);
+            const existingImg = this.currentEditingVariantImages && this.currentEditingVariantImages[v.key];
+            const imgUrl = existingImg || '';
+            const imgPreview = imgUrl ? `<img src="${this.escapeHtml(imgUrl)}" class="variant-image-preview" alt="">` : '';
+            const imageCell = `
+                <td>
+                    <div class="variant-image-cell">
+                        ${imgPreview}
+                        <input type="hidden" class="variant-image-input" data-key="${this.escapeHtml(v.key)}" value="${this.escapeHtml(imgUrl)}">
+                        <button type="button" class="btn btn-secondary variant-image-select-btn" data-key="${this.escapeHtml(v.key)}">選択</button>
+                        ${imgUrl ? `<button type="button" class="btn btn-danger variant-image-clear-btn" data-key="${this.escapeHtml(v.key)}" style="padding: 4px 8px; font-size: 12px;">クリア</button>` : ''}
+                    </div>
+                </td>
+            `;
+            return `<tr>${cells.join('')}<td><input type="number" class="variant-qty-input" data-key="${this.escapeHtml(v.key)}" value="${qty}" min="0"></td>${imageCell}</tr>`;
         }).join('');
 
         container.innerHTML = `
             <table class="variant-inventory-table">
-                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}<th>在庫数</th></tr></thead>
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}<th>在庫数</th><th>画像</th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>
         `;
+
+        container.querySelectorAll('.variant-image-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.openVariantImagePicker(e.target.dataset.key));
+        });
+        container.querySelectorAll('.variant-image-clear-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const key = e.target.dataset.key;
+                if (this.currentEditingVariantImages) delete this.currentEditingVariantImages[key];
+                this.renderVariantInventory();
+            });
+        });
     }
 
     renderSkuMaps() {
@@ -1416,8 +1533,11 @@ class ProductCSVGenerator {
             if (index === 0 && product.images && product.images.length > 0) {
                 const ext0 = this.getExternalImageUrl(product.images[0].data);
                 if (ext0) { row[36] = this.escapeCsv(ext0); row[37] = '1'; }
-                const ext1 = product.images.length > 1 ? this.getExternalImageUrl(product.images[1].data) : '';
-                if (ext1) row[39] = this.escapeCsv(ext1);
+            }
+            // Per-variant image
+            if (product.variantImages && variant.key && product.variantImages[variant.key]) {
+                const varImgUrl = this.getExternalImageUrl(product.variantImages[variant.key]);
+                if (varImgUrl) row[39] = this.escapeCsv(varImgUrl);
             }
             row[40] = product.giftCard ? 'TRUE' : 'FALSE';
             row[57] = this.escapeCsv(product.brandCode || '');
@@ -1497,21 +1617,21 @@ class ProductCSVGenerator {
         };
         if (opt1.length === 0 && opt2.length === 0 && opt3.length === 0) {
             const sku = genSku({ option1: '', option2: '', option3: '' });
-            variants.push({ option1: '', option2: '', option3: '', sku: sku || product.sku || '', inventoryQty: product.inventoryQty || 0 });
+            variants.push({ option1: '', option2: '', option3: '', sku: sku || product.sku || '', inventoryQty: product.inventoryQty || 0, key: '' });
             return variants;
         }
         if (opt1.length > 0) {
             opt1.forEach(v1 => {
                 if (opt2.length > 0) opt2.forEach(v2 => opt3.length > 0 ? opt3.forEach(v3 => {
                     const key = buildKey(v1, v2, v3);
-                    variants.push({ option1: v1, option2: v2, option3: v3, sku: genSku({option1:v1,option2:v2,option3:v3}), inventoryQty: getQty(key) });
-                }) : variants.push({ option1: v1, option2: v2, option3: '', sku: genSku({option1:v1,option2:v2,option3:''}), inventoryQty: getQty(buildKey(v1, v2, '')) }));
-                else if (opt3.length > 0) opt3.forEach(v3 => variants.push({ option1: v1, option2: '', option3: v3, sku: genSku({option1:v1,option2:'',option3:v3}), inventoryQty: getQty(buildKey(v1, '', v3)) }));
-                else variants.push({ option1: v1, option2: '', option3: '', sku: genSku({option1:v1,option2:'',option3:''}), inventoryQty: getQty(buildKey(v1, '', '')) });
+                    variants.push({ option1: v1, option2: v2, option3: v3, sku: genSku({option1:v1,option2:v2,option3:v3}), inventoryQty: getQty(key), key });
+                }) : variants.push({ option1: v1, option2: v2, option3: '', sku: genSku({option1:v1,option2:v2,option3:''}), inventoryQty: getQty(buildKey(v1, v2, '')), key: buildKey(v1, v2, '') }));
+                else if (opt3.length > 0) opt3.forEach(v3 => variants.push({ option1: v1, option2: '', option3: v3, sku: genSku({option1:v1,option2:'',option3:v3}), inventoryQty: getQty(buildKey(v1, '', v3)), key: buildKey(v1, '', v3) }));
+                else variants.push({ option1: v1, option2: '', option3: '', sku: genSku({option1:v1,option2:'',option3:''}), inventoryQty: getQty(buildKey(v1, '', '')), key: buildKey(v1, '', '') });
             });
         } else if (opt2.length > 0) {
-            opt2.forEach(v2 => opt3.length > 0 ? opt3.forEach(v3 => variants.push({ option1: '', option2: v2, option3: v3, sku: genSku({option1:'',option2:v2,option3:v3}), inventoryQty: getQty(buildKey('', v2, v3)) })) : variants.push({ option1: '', option2: v2, option3: '', sku: genSku({option1:'',option2:v2,option3:''}), inventoryQty: getQty(buildKey('', v2, '')) }));
-        } else if (opt3.length > 0) opt3.forEach(v3 => variants.push({ option1: '', option2: '', option3: v3, sku: genSku({option1:'',option2:'',option3:v3}), inventoryQty: getQty(buildKey('', '', v3)) }));
+            opt2.forEach(v2 => opt3.length > 0 ? opt3.forEach(v3 => variants.push({ option1: '', option2: v2, option3: v3, sku: genSku({option1:'',option2:v2,option3:v3}), inventoryQty: getQty(buildKey('', v2, v3)), key: buildKey('', v2, v3) })) : variants.push({ option1: '', option2: v2, option3: '', sku: genSku({option1:'',option2:v2,option3:''}), inventoryQty: getQty(buildKey('', v2, '')), key: buildKey('', v2, '') }));
+        } else if (opt3.length > 0) opt3.forEach(v3 => variants.push({ option1: '', option2: '', option3: v3, sku: genSku({option1:'',option2:'',option3:v3}), inventoryQty: getQty(buildKey('', '', v3)), key: buildKey('', '', v3) }));
         return variants;
     }
 
