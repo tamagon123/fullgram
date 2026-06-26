@@ -115,9 +115,6 @@ class ProductCSVGenerator {
         document.querySelector('.close-btn').addEventListener('click', () => this.closeModal());
         document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal());
         
-        document.getElementById('productModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('productModal')) this.closeModal();
-        });
 
         document.getElementById('productForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -130,9 +127,6 @@ class ProductCSVGenerator {
         document.getElementById('closeCloudinaryHistory').addEventListener('click', () => this.closeCloudinaryHistoryPicker());
         document.getElementById('cancelCloudinaryHistory').addEventListener('click', () => this.closeCloudinaryHistoryPicker());
         document.getElementById('applyCloudinaryHistory').addEventListener('click', () => this.applyCloudinaryHistorySelection());
-        document.getElementById('cloudinaryHistoryModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('cloudinaryHistoryModal')) this.closeCloudinaryHistoryPicker();
-        });
 
         document.getElementById('title').addEventListener('input', (e) => {
             const handle = document.getElementById('handle');
@@ -152,9 +146,6 @@ class ProductCSVGenerator {
         document.getElementById('manageData').addEventListener('click', () => this.openDataManage());
         document.getElementById('closeDataManage').addEventListener('click', () => this.closeDataManage());
         document.getElementById('cancelDataManage').addEventListener('click', () => this.closeDataManage());
-        document.getElementById('dataManageModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('dataManageModal')) this.closeDataManage();
-        });
         document.querySelectorAll('.data-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchDataTab(tab.dataset.tab));
         });
@@ -175,18 +166,12 @@ class ProductCSVGenerator {
         document.getElementById('openVendorPicker').addEventListener('click', () => this.openBrandPicker());
         document.getElementById('closeBrandPicker').addEventListener('click', () => this.closeBrandPicker());
         document.getElementById('cancelBrandPicker').addEventListener('click', () => this.closeBrandPicker());
-        document.getElementById('brandPickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('brandPickerModal')) this.closeBrandPicker();
-        });
         document.getElementById('brandSearchInput').addEventListener('input', () => this.filterBrandPicker());
 
         document.getElementById('openCategoryPicker').addEventListener('click', () => this.openCategoryPicker());
         document.getElementById('openProductTypePicker').addEventListener('click', () => this.openProductTypePicker());
         document.getElementById('closeCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
         document.getElementById('cancelCategoryPicker').addEventListener('click', () => this.closeCategoryPicker());
-        document.getElementById('categoryPickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('categoryPickerModal')) this.closeCategoryPicker();
-        });
         document.getElementById('categorySearchInput').addEventListener('input', () => this.filterCategoryPicker());
 
         document.getElementById('openTagPicker').addEventListener('click', () => this.openTagPicker());
@@ -197,9 +182,6 @@ class ProductCSVGenerator {
         document.getElementById('newTagInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); this.addNewTag(); }
         });
-        document.getElementById('tagPickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('tagPickerModal')) this.closeTagPicker();
-        });
 
         document.getElementById('openCollectionPicker').addEventListener('click', () => this.openCollectionPicker());
         document.getElementById('closeCollectionPicker').addEventListener('click', () => this.closeCollectionPicker());
@@ -209,17 +191,11 @@ class ProductCSVGenerator {
         document.getElementById('newCollectionInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); this.addNewCollection(); }
         });
-        document.getElementById('collectionPickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('collectionPickerModal')) this.closeCollectionPicker();
-        });
 
         document.getElementById('closeVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
         document.getElementById('cancelVariantImagePicker').addEventListener('click', () => this.closeVariantImagePicker());
         document.getElementById('clearVariantImageBtn').addEventListener('click', () => this.clearVariantImage());
         document.getElementById('variantCloudinaryUploadBtn').addEventListener('click', () => document.getElementById('cloudinaryInput').click());
-        document.getElementById('variantImagePickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('variantImagePickerModal')) this.closeVariantImagePicker();
-        });
 
         document.getElementById('openOption1Picker').addEventListener('click', () => this.openOptionPicker(1));
         document.getElementById('openOption2Picker').addEventListener('click', () => this.openOptionPicker(2));
@@ -227,18 +203,12 @@ class ProductCSVGenerator {
         document.getElementById('closeSizePicker').addEventListener('click', () => this.closeSizePicker());
         document.getElementById('cancelSizePicker').addEventListener('click', () => this.closeSizePicker());
         document.getElementById('applySizesBtn').addEventListener('click', () => this.applySizes());
-        document.getElementById('sizePickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('sizePickerModal')) this.closeSizePicker();
-        });
         document.querySelectorAll('[data-size-picker-tab]').forEach(tab => {
             tab.addEventListener('click', () => this.switchSizePickerTab(tab.dataset.sizePickerTab));
         });
         document.getElementById('closeColorPicker').addEventListener('click', () => this.closeColorPicker());
         document.getElementById('cancelColorPicker').addEventListener('click', () => this.closeColorPicker());
         document.getElementById('applyColorsBtn').addEventListener('click', () => this.applyColors());
-        document.getElementById('colorPickerModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('colorPickerModal')) this.closeColorPicker();
-        });
 
         ['brandCode','skuCategory','skuSerial','productType','option1Values','option2Values','option3Values'].forEach(id => {
             const el = document.getElementById(id);
