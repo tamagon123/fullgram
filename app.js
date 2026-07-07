@@ -1,4 +1,17 @@
 // Product CSV Generator Application
+
+const MEASUREMENT_FIELDS = {
+    tops: ['着丈', '肩幅', '身幅', '袖丈'],
+    bottoms: ['ウエスト', 'ヒップ', '股上', '股下', 'すそ周り'],
+    onepiece: ['着丈', '肩幅', '身幅', '袖丈', 'ウエスト'],
+    outer: ['着丈', '肩幅', '身幅', '袖丈'],
+    hat: ['頭周り', 'つばの長さ', '高さ'],
+    shoes: ['外反幅', '甲周り', '重さ'],
+    bag: ['幅', '高さ', 'マチ', '持ち手長さ', '重さ'],
+    accessories: ['全長', '幅', '重さ'],
+    other: ['備考']
+};
+
 class ProductCSVGenerator {
     constructor() {
         this.products = [];
@@ -231,6 +244,14 @@ class ProductCSVGenerator {
         document.getElementById('seoDescription').addEventListener('input', () => {
             this.seoDescriptionManuallyEdited = true;
         });
+
+        document.getElementById('measurementType').addEventListener('change', () => this.renderMeasurementTable());
+        document.getElementById('addMeasurementRow').addEventListener('click', () => this.addMeasurementRow());
+        ['description', 'descriptionOther', 'modelInfo'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => this.updateDescriptionPreview());
+        });
+        document.getElementById('measurementTableWrapper').addEventListener('input', () => this.updateDescriptionPreview());
     }
 
     generateHandle(title) {
@@ -265,6 +286,134 @@ class ProductCSVGenerator {
             const plainText = description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
             document.getElementById('seoDescription').value = plainText.substring(0, 160);
         }
+    }
+
+    renderMeasurementTable(rows = []) {
+        const type = document.getElementById('measurementType').value;
+        const section = document.getElementById('measurementSection');
+        const wrapper = document.getElementById('measurementTableWrapper');
+
+        if (!type || !MEASUREMENT_FIELDS[type]) {
+            section.style.display = 'none';
+            wrapper.innerHTML = '';
+            return;
+        }
+
+        section.style.display = 'block';
+        const fields = MEASUREMENT_FIELDS[type];
+        const unit = (type === 'shoes' || type === 'bag' || type === 'accessories') ? '' : ' (cm)';
+
+        let html = '<div class="measurement-table-scroll"><table class="measurement-table"><thead><tr><th>Size' + unit + '</th>';
+        fields.forEach(field => { html += `<th>${this.escapeHtml(field)}</th>`; });
+        html += '<th></th></tr></thead><tbody>';
+
+        if (rows.length === 0) rows = [{ size: '' }];
+        rows.forEach((row, index) => {
+            html += `<tr data-row-index="${index}"><td><input type="text" class="measurement-size" value="${this.escapeHtml(row.size || '')}" placeholder="S, M, 2..."></td>`;
+            fields.forEach((field, fIndex) => {
+                const key = this.measurementKey(field);
+                html += `<td><input type="text" class="measurement-value" data-field="${this.escapeHtml(field)}" value="${this.escapeHtml(row[key] || '')}"></td>`;
+            });
+            html += `<td><button type="button" class="btn btn-icon btn-remove-row" data-index="${index}">削除</button></td></tr>`;
+        });
+
+        html += '</tbody></table></div>';
+        wrapper.innerHTML = html;
+
+        wrapper.querySelectorAll('.btn-remove-row').forEach(btn => {
+            btn.addEventListener('click', (e) => this.removeMeasurementRow(parseInt(e.target.dataset.index)));
+        });
+    }
+
+    measurementKey(label) {
+        return label.replace(/\s+/g, '_').replace(/[()]/g, '');
+    }
+
+    addMeasurementRow() {
+        const wrapper = document.getElementById('measurementTableWrapper');
+        const rows = this.getMeasurementData();
+        rows.push({ size: '' });
+        this.renderMeasurementTable(rows);
+        this.updateDescriptionPreview();
+    }
+
+    removeMeasurementRow(index) {
+        const rows = this.getMeasurementData();
+        rows.splice(index, 1);
+        if (rows.length === 0) rows.push({ size: '' });
+        this.renderMeasurementTable(rows);
+        this.updateDescriptionPreview();
+    }
+
+    getMeasurementData() {
+        const wrapper = document.getElementById('measurementTableWrapper');
+        const rows = [];
+        wrapper.querySelectorAll('tbody tr').forEach(tr => {
+            const row = { size: '' };
+            const sizeInput = tr.querySelector('.measurement-size');
+            if (sizeInput) row.size = sizeInput.value.trim();
+            tr.querySelectorAll('.measurement-value').forEach(input => {
+                const key = this.measurementKey(input.dataset.field);
+                row[key] = input.value.trim();
+            });
+            rows.push(row);
+        });
+        return rows;
+    }
+
+    generateDescriptionHTML(product = null) {
+        const description = product ? (product.description || '') : document.getElementById('description').value.trim();
+
+        // 既にHTML形式のdescriptionがあれば、そのまま使用する（CSV読み込み時の互換性）
+        if (description && /<[^>]+>/.test(description)) {
+            return description;
+        }
+
+        const descriptionOther = product ? (product.descriptionOther || '') : document.getElementById('descriptionOther').value.trim();
+        const modelInfo = product ? (product.modelInfo || '') : document.getElementById('modelInfo').value.trim();
+        const measurementType = product ? (product.measurementType || '') : document.getElementById('measurementType').value;
+        const measurementRows = product ? (product.measurementRows || []) : this.getMeasurementData();
+
+        let html = '';
+
+        if (description) {
+            html += description.replace(/\n/g, '<br>');
+        }
+
+        const fields = MEASUREMENT_FIELDS[measurementType];
+        if (fields && measurementRows.length > 0 && measurementRows.some(r => r.size || fields.some(f => r[this.measurementKey(f)]))) {
+            if (html) html += '<p>&nbsp;</p>';
+            html += '<div class="rte-table-wrapper"><table style="width: auto;"><tbody>';
+            html += `<tr><td>Size${(measurementType === 'shoes' || measurementType === 'bag' || measurementType === 'accessories' || measurementType === 'other') ? '' : ' (cm)'}</td>`;
+            fields.forEach(field => { html += `<td>${this.escapeHtml(field)}</td>`; });
+            html += '</tr>';
+            measurementRows.forEach(row => {
+                html += `<tr><td>${this.escapeHtml(row.size || '')}</td>`;
+                fields.forEach(field => {
+                    html += `<td>${this.escapeHtml(row[this.measurementKey(field)] || '')}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+        }
+
+        if (descriptionOther) {
+            if (html) html += '<p>&nbsp;</p>';
+            html += descriptionOther.replace(/\n/g, '<br>');
+        }
+
+        if (modelInfo) {
+            if (html) html += '<p>&nbsp;</p>';
+            html += `<p>${this.escapeHtml(modelInfo)}</p>`;
+        }
+
+        return html;
+    }
+
+    updateDescriptionPreview() {
+        const preview = document.getElementById('descriptionPreview');
+        if (!preview) return;
+        preview.innerHTML = this.generateDescriptionHTML();
     }
 
     async handleCloudinaryUpload(files) {
@@ -862,6 +1011,12 @@ class ProductCSVGenerator {
         document.getElementById('skuCategory').value = '';
         this.seoDescriptionManuallyEdited = false;
         this.currentEditingVariantImages = null;
+        document.getElementById('descriptionOther').value = '';
+        document.getElementById('modelInfo').value = '';
+        document.getElementById('measurementType').value = '';
+        document.getElementById('measurementSection').style.display = 'none';
+        document.getElementById('measurementTableWrapper').innerHTML = '';
+        document.getElementById('descriptionPreview').innerHTML = '';
         document.getElementById('variantInventorySection').style.display = 'none';
         document.getElementById('variantInventoryContainer').innerHTML = '';
         const simpleGroup = document.getElementById('simpleInventoryGroup');
@@ -875,6 +1030,10 @@ class ProductCSVGenerator {
         document.getElementById('title').value = product.title || '';
         document.getElementById('handle').value = product.handle || '';
         document.getElementById('description').value = product.description || '';
+        document.getElementById('descriptionOther').value = product.descriptionOther || '';
+        document.getElementById('modelInfo').value = product.modelInfo || '';
+        document.getElementById('measurementType').value = product.measurementType || '';
+        this.renderMeasurementTable(product.measurementRows || []);
         document.getElementById('vendor').value = product.vendor || 'Your Brand';
         document.getElementById('productType').value = product.productType || '';
         document.getElementById('shopifyCategory').value = product.shopifyCategory || product.productCategory || '';
@@ -927,6 +1086,7 @@ class ProductCSVGenerator {
         this.currentEditingVariantInventory = product.variantInventory || null;
         this.updateSkuPreview();
         this.renderVariantInventory();
+        this.updateDescriptionPreview();
     }
 
     saveProduct() {
@@ -968,6 +1128,10 @@ class ProductCSVGenerator {
             title: document.getElementById('title').value,
             handle: handleInput || baseSku,
             description: document.getElementById('description').value,
+            descriptionOther: document.getElementById('descriptionOther').value,
+            modelInfo: document.getElementById('modelInfo').value,
+            measurementType: document.getElementById('measurementType').value,
+            measurementRows: this.getMeasurementData(),
             vendor: document.getElementById('vendor').value,
             productType: document.getElementById('productType').value,
             shopifyCategory: document.getElementById('shopifyCategory').value,
@@ -1458,7 +1622,7 @@ class ProductCSVGenerator {
             row[1] = this.escapeCsv(product.handle);
             if (index === 0) {
                 row[0] = this.escapeCsv(product.title);
-                row[2] = this.escapeCsv(product.description);
+                row[2] = this.escapeCsv(this.generateDescriptionHTML(product));
                 row[3] = this.escapeCsv(product.vendor);
                 row[4] = this.escapeCsv(product.shopifyCategory || product.productCategory || '');
                 row[5] = this.escapeCsv(product.productType);
@@ -1530,7 +1694,7 @@ class ProductCSVGenerator {
 
         if (rows.length === 0) {
             const row = new Array(this.csvHeaders.length).fill('');
-            row[0] = this.escapeCsv(product.title); row[1] = this.escapeCsv(product.handle); row[2] = this.escapeCsv(product.description);
+            row[0] = this.escapeCsv(product.title); row[1] = this.escapeCsv(product.handle); row[2] = this.escapeCsv(this.generateDescriptionHTML(product));
             row[3] = this.escapeCsv(product.vendor); row[4] = this.escapeCsv(product.shopifyCategory || product.productCategory || ''); row[5] = this.escapeCsv(product.productType);
             row[7] = product.published ? 'TRUE' : 'FALSE'; row[8] = product.status; row[9] = this.escapeCsv(product.sku);
             row[20] = product.price; row[23] = product.chargeTax ? 'TRUE' : 'FALSE'; row[29] = 'shopify';

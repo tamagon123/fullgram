@@ -108,6 +108,56 @@
 
                             <div class="form-row">
                                 <div class="form-group">
+                                    <label for="descriptionOther">
+                                        その他
+                                        <span class="help-icon" title="商品説明の末尾に追加される補足情報。素材・洗濯方法・注意事項など">?</span>
+                                    </label>
+                                    <textarea id="descriptionOther" rows="3"></textarea>
+                                    <span class="help-text">商品説明の末尾に追加される補足情報</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="modelInfo">
+                                        着用スタッフ情報
+                                        <span class="help-icon" title="モデルやスタッフの着用情報。例：身長165cm 60kg サイズ2着用">?</span>
+                                    </label>
+                                    <input type="text" id="modelInfo" placeholder="例：身長165cm 60kg サイズ2着用">
+                                </div>
+                                <div class="form-group">
+                                    <label for="measurementType">
+                                        採寸タイプ
+                                        <span class="help-icon" title="商品カテゴリに応じた採寸フォーマットを選択します">?</span>
+                                    </label>
+                                    <select id="measurementType">
+                                        <option value="">選択しない</option>
+                                        <option value="tops">トップス</option>
+                                        <option value="bottoms">ボトムス</option>
+                                        <option value="onepiece">ワンピース</option>
+                                        <option value="outer">アウター</option>
+                                        <option value="hat">帽子</option>
+                                        <option value="shoes">靴</option>
+                                        <option value="bag">バッグ</option>
+                                        <option value="accessories">アクセサリー</option>
+                                        <option value="other">その他</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="measurementSection" class="form-group" style="display:none;">
+                                <label>採寸表</label>
+                                <div id="measurementTableWrapper" class="measurement-table-wrapper"></div>
+                                <button type="button" class="btn btn-secondary" id="addMeasurementRow">サイズを追加</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>生成HTMLプレビュー</label>
+                                <div id="descriptionPreview" class="description-preview" style="border:1px solid var(--color-border); padding:12px; background:#fff; min-height:80px; font-size:13px; overflow:auto;"></div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
                                     <label for="vendor">
                                         ベンダー (Vendor)
                                         <span class="help-icon" title="商品のメーカーまたはブランド名。フィルターやコレクションでの絞り込みに使用されます。Shopify上でのブランドページへのリンクにも影響します。JSONに登録されたブランドからのみ選択できます">?</span>

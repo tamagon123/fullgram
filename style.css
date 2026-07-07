@@ -1453,3 +1453,77 @@ select {
         padding-top: 15vh;
     }
 }
+
+/* Measurement table styles */
+.measurement-table-wrapper {
+    overflow-x: auto;
+}
+
+.measurement-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 360px;
+}
+
+.measurement-table th,
+.measurement-table td {
+    border: 1px solid var(--color-border);
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.measurement-table th {
+    background: var(--color-bg);
+    font-weight: 600;
+}
+
+.measurement-table td input[type="text"] {
+    width: 80px;
+    min-width: 60px;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+}
+
+.measurement-table td input[type="text"].measurement-size {
+    width: 60px;
+}
+
+.btn-remove-row {
+    padding: 4px 10px;
+    font-size: 12px;
+    background: var(--color-danger);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.btn-remove-row:hover {
+    opacity: 0.85;
+}
+
+.description-preview {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    min-height: 80px;
+    font-size: 13px;
+    overflow: auto;
+    line-height: 1.6;
+}
+
+.description-preview table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.description-preview table td {
+    border: 1px solid var(--color-border);
+    padding: 6px 10px;
+    min-width: 50px;
+}
