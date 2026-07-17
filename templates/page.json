@@ -1,0 +1,38 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "panio_banner": {
+      "type": "c_image-banner",
+      "blocks": {
+        "nav_1": { "type": "nav_group", "settings": { "title": "TOP", "link": "shopify://pages/top" } },
+        "nav_2": { "type": "nav_group", "settings": { "title": "APAREL&GOODS", "link": "shopify://collections/all", "sub_title_1": "ALL", "sub_link_1": "shopify://collections/all", "sub_title_2": "MENS", "sub_link_2": "shopify://collections/mens", "sub_title_3": "WOMENS", "sub_link_3": "shopify://collections/womens" } },
+        "nav_3": { "type": "nav_group", "settings": { "title": "PICK UP BRAND", "link": "shopify://collections/all" } },
+        "nav_4": { "type": "nav_group", "settings": { "title": "ORIGINAL BRAND", "link": "shopify://collections/all" } },
+        "nav_5": { "type": "nav_group", "settings": { "title": "INTERIOR", "link": "shopify://collections/all" } },
+        "nav_6": { "type": "nav_group", "settings": { "title": "ABOUT", "link": "shopify://pages/about" } },
+        "nav_7": { "type": "nav_group", "settings": { "title": "CONTACT", "link": "shopify://pages/contact" } }
+      },
+      "block_order": ["nav_1","nav_2","nav_3","nav_4","nav_5","nav_6","nav_7"],
+      "settings": { "image": "", "banner_height": 30 }
+    },
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    }
+  },
+  "order": [
+    "panio_banner",
+    "main"
+  ]
+}

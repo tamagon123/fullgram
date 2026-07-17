@@ -1,0 +1,440 @@
+{% comment %}
+  =============================================================================
+  c_brand-list.liquid
+  =============================================================================
+  作成日: 2026-06-27
+  作成者: s.tamaki (Devin)
+
+  目的:
+    参考サイト（https://panio2014.com/）の「Pickup Brand」セクションを
+    再現するためのカスタムセクション。
+    ブランド名のテキストリストを表示し、ホバー時に該当ブランドの
+    画像が浮かび上がる（ポップアップ/ツールチップ）インタラクションを実装。
+
+  変更履歴:
+    2026-06-27 - 初回作成。ブロック形式でブランド名・画像・リンクを管理。
+  =============================================================================
+{% endcomment %}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    max-width: 100%;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  /* 左右余白 */
+  .page-width.section-{{ section.id }}-padding {
+    padding-left: {{ section.settings.horizontal_padding }}px !important;
+    padding-right: {{ section.settings.horizontal_padding }}px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    max-width: 100% !important;
+  }
+
+  .c-brand-list {
+    position: relative;
+  }
+
+  .c-brand-list__heading {
+    margin: 0 0 2rem {{ section.settings.heading_indent }}px;
+    font-family: var(--font-heading-family);
+    font-style: var(--font-heading-style);
+    font-weight: var(--font-heading-weight);
+    color: rgb(var(--color-foreground));
+    letter-spacing: 0.06rem;
+  }
+
+  .c-brand-list__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat({{ section.settings.columns_desktop }}, minmax(0, 1fr));
+    gap: {{ section.settings.grid_gap }}px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .c-brand-list__items {
+      grid-template-columns: repeat({{ section.settings.columns_mobile }}, minmax(0, 1fr));
+    }
+  }
+
+  .c-brand-list__item {
+    position: relative;
+  }
+
+  .c-brand-list__card {
+    display: block;
+    text-decoration: none;
+    color: rgb(var(--color-foreground));
+  }
+
+  .c-brand-list__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: {{ section.settings.image_ratio | replace: ':', ' / ' }};
+    overflow: hidden;
+    background: rgba(var(--color-foreground), 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ section.settings.card_padding }}px;
+    box-sizing: border-box;
+    border: {% if section.settings.show_border %}{{ section.settings.border_width }}px solid {{ section.settings.border_color }}{% else %}none{% endif %};
+  }
+
+  .c-brand-list__media img,
+  .c-brand-list__media svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .c-brand-list__media .placeholder-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .c-brand-list__fallback {
+    font-family: var(--font-heading-family);
+    font-style: var(--font-heading-style);
+    font-weight: var(--font-heading-weight);
+    font-size: {{ section.settings.fallback_font_size }}px;
+    color: rgb(var(--color-foreground));
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .c-brand-list__name {
+    font-family: var(--font-body-family);
+    font-style: var(--font-body-style);
+    font-weight: var(--font-body-weight);
+    font-size: {{ section.settings.font_size }}px;
+    color: rgb(var(--color-foreground));
+    text-align: center;
+    margin-top: 1.2rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .c-brand-list__card:hover .c-brand-list__name {
+    opacity: 0.5;
+  }
+
+  /* ホバーで浮かび上がる画像 */
+  .c-brand-list__hover-image {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 100;
+    top: 100%;
+    left: 50%;
+    margin-left: -{{ section.settings.image_width | divided_by: 2 }}px;
+    margin-top: 8px;
+  }
+
+  .c-brand-list__item:hover .c-brand-list__hover-image {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .c-brand-list__hover-image img {
+    display: block;
+    width: {{ section.settings.image_width }}px;
+    height: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width section-{{ section.id }}-padding">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="c-brand-list__heading {{ section.settings.heading_size }}">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="c-brand-list__items">
+      {%- for block in section.blocks -%}
+        <li class="c-brand-list__item" {{ block.shopify_attributes }}>
+          <a
+            href="{{ block.settings.link | default: '#' }}"
+            class="c-brand-list__card"
+          >
+            <div class="c-brand-list__media">
+              {%- if block.settings.image != blank -%}
+                <img
+                  src="{{ block.settings.image | image_url: width: 800 }}"
+                  srcset="
+                    {{ block.settings.image | image_url: width: 300 }} 300w,
+                    {{ block.settings.image | image_url: width: 600 }} 600w,
+                    {{ block.settings.image | image_url: width: 800 }} 800w
+                  "
+                  sizes="(min-width: 750px) {{ 100 | divided_by: section.settings.columns_desktop }}vw, {{ 100 | divided_by: section.settings.columns_mobile }}vw"
+                  alt="{{ block.settings.brand_name | escape }}"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                <span class="c-brand-list__fallback">{{ block.settings.brand_name }}</span>
+              {%- endif -%}
+            </div>
+            {%- if section.settings.show_brand_name -%}
+              <div class="c-brand-list__name">{{ block.settings.brand_name }}</div>
+            {%- endif -%}
+          </a>
+          {%- if block.settings.hover_image != blank -%}
+            <div class="c-brand-list__hover-image">
+              <img
+                src="{{ block.settings.hover_image | image_url: width: section.settings.image_width }}"
+                alt="{{ block.settings.brand_name | escape }}"
+                width="{{ section.settings.image_width }}"
+                height="{{ section.settings.image_width | divided_by: block.settings.hover_image.aspect_ratio | round }}"
+                loading="lazy"
+              >
+            </div>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "★ Pickup Brand",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Pickup Brand",
+      "label": "セクション見出し"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        { "value": "h2", "label": "小" },
+        { "value": "h1", "label": "中" },
+        { "value": "h0", "label": "大" },
+        { "value": "hxl", "label": "特大" },
+        { "value": "hxxl", "label": "最大" }
+      ],
+      "default": "h1",
+      "label": "見出しサイズ"
+    },
+    {
+      "type": "range",
+      "id": "heading_indent",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "見出しの左余白",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "左右余白（セクション全体）",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brand_name",
+      "label": "画像下にブランド名を表示",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "ブランド名フォントサイズ",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "fallback_font_size",
+      "min": 12,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "画像未設定時のブランド名フォントサイズ",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "label": "PC表示の列数",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "モバイル表示の列数",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "card_padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "カード内の余白（パディング）",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "show_border",
+      "label": "枠線を表示",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "枠線の色",
+      "default": "#e8e8e8"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "枠線の太さ",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "グリッドの隙間",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "画像のアスペクト比",
+      "options": [
+        { "value": "1:1", "label": "正方形 (1:1)" },
+        { "value": "3:4", "label": "縦長 (3:4)" },
+        { "value": "4:3", "label": "横長 (4:3)" },
+        { "value": "16:9", "label": "ワイド (16:9)" }
+      ],
+      "default": "3:4"
+    },
+    {
+      "type": "range",
+      "id": "image_width",
+      "min": 80,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "ホバー画像の幅",
+      "default": 160
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "カラースキーム",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "余白設定"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上余白",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下余白",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "ブランド",
+      "settings": [
+        {
+          "type": "text",
+          "id": "brand_name",
+          "label": "ブランド名",
+          "default": "BRAND NAME"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "リンク先"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "カード画像（未設定時はプレースホルダー）"
+        },
+        {
+          "type": "image_picker",
+          "id": "hover_image",
+          "label": "ホバー時に浮かび上がる画像"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "★ Pickup Brand（ブランドリスト）",
+      "blocks": [
+        { "type": "brand" },
+        { "type": "brand" },
+        { "type": "brand" }
+      ]
+    }
+  ]
+}
+{% endschema %}

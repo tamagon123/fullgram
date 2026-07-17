@@ -1,0 +1,278 @@
+{% comment %}
+  =============================================================================
+  c_brand-text-list.liquid
+  =============================================================================
+  作成日: 2026-06-28
+  作成者: s.tamaki (Devin)
+
+  目的:
+    参考サイト（https://panio2014.com/）のブランド名テキストリストを再現。
+    ブランド名をテキストのみで表示し、リンク・ハイライトを設定可能。
+    Pickup Brand（画像あり）とは別のセクションとして配置。
+
+  変更履歴:
+    2026-06-28 - 初回作成。テキストリスト形式のブランド表示。
+  =============================================================================
+{% endcomment %}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    padding-left: {{ section.settings.horizontal_padding }}px;
+    padding-right: {{ section.settings.horizontal_padding }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .c-brand-text-list {
+    position: relative;
+  }
+
+  .c-brand-text-list__heading {
+    margin: 0 0 {{ section.settings.heading_bottom_margin }}px {{ section.settings.heading_indent }}px;
+    font-family: var(--font-heading-family);
+    font-style: var(--font-heading-style);
+    font-weight: var(--font-heading-weight);
+    color: rgb(var(--color-foreground));
+    letter-spacing: 0.06rem;
+  }
+
+  .c-brand-text-list__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: {{ section.settings.items_alignment }};
+    row-gap: {{ section.settings.row_gap }}px;
+    column-gap: {{ section.settings.column_gap }}px;
+  }
+
+  .c-brand-text-list__item {
+    display: inline;
+  }
+
+  .c-brand-text-list__link {
+    font-family: var(--font-body-family);
+    font-style: var(--font-body-style);
+    font-weight: var(--font-body-weight);
+    font-size: {{ section.settings.font_size }}px;
+    color: rgb(var(--color-foreground));
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .c-brand-text-list__link:hover {
+    opacity: 0.5;
+  }
+
+  .c-brand-text-list__link--bold {
+    font-weight: 700;
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width section-{{ section.id }}-padding">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="c-brand-text-list__heading {{ section.settings.heading_size }}">
+        {{ section.settings.heading }}
+      </h2>
+    {%- endif -%}
+
+    <ul class="c-brand-text-list__items">
+      {%- for block in section.blocks -%}
+        <li class="c-brand-text-list__item" {{ block.shopify_attributes }}>
+          {%- if block.settings.link != blank -%}
+            <a
+              href="{{ block.settings.link }}"
+              class="c-brand-text-list__link{% if block.settings.bold %} c-brand-text-list__link--bold{% endif %}"
+            >
+              {{ block.settings.brand_name }}
+            </a>
+          {%- else -%}
+            <span class="c-brand-text-list__link{% if block.settings.bold %} c-brand-text-list__link--bold{% endif %}">
+              {{ block.settings.brand_name }}
+            </span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "★ ブランド名リスト（テキスト）",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "BRAND LIST",
+      "label": "セクション見出し"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        { "value": "h2", "label": "小" },
+        { "value": "h1", "label": "中" },
+        { "value": "h0", "label": "大" },
+        { "value": "hxl", "label": "特大" },
+        { "value": "hxxl", "label": "最大" }
+      ],
+      "default": "h1",
+      "label": "見出しサイズ"
+    },
+    {
+      "type": "range",
+      "id": "heading_indent",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "見出しの左余白",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "heading_bottom_margin",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "見出し下の余白",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "ブランド名フォントサイズ",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "min": 8,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "横方向の間隔",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "row_gap",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "縦方向の間隔",
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "items_alignment",
+      "label": "テキストの揃え",
+      "options": [
+        { "value": "flex-start", "label": "左寄せ" },
+        { "value": "center", "label": "中央寄せ" },
+        { "value": "flex-end", "label": "右寄せ" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "左右余白（セクション全体）",
+      "default": 0
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "カラースキーム",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "余白設定"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上余白",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下余白",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "ブランド",
+      "settings": [
+        {
+          "type": "text",
+          "id": "brand_name",
+          "label": "ブランド名",
+          "default": "BRAND NAME"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "リンク先"
+        },
+        {
+          "type": "checkbox",
+          "id": "bold",
+          "label": "太字で強調",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "★ ブランド名リスト（テキスト）",
+      "blocks": [
+        { "type": "brand" },
+        { "type": "brand" },
+        { "type": "brand" },
+        { "type": "brand" },
+        { "type": "brand" }
+      ]
+    }
+  ]
+}
+{% endschema %}

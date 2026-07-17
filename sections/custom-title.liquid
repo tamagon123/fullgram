@@ -1,0 +1,154 @@
+{%- style -%}
+  .custom-title-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    padding-left: {{ section.settings.padding_left }}px;
+    padding-right: {{ section.settings.padding_right }}px;
+    margin-top: {{ section.settings.margin_top }}px;
+    margin-bottom: {{ section.settings.margin_bottom }}px;
+  }
+
+  .custom-title-{{ section.id }} .pure-title__text {
+    font-size: {{ section.settings.font_size_mobile }}px;
+    color: {{ section.settings.color_text }};
+    font-weight: bold;
+    letter-spacing: 0.06rem;
+    margin: 0;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  @media screen and (min-width: 750px) {
+    .custom-title-{{ section.id }} .pure-title__text {
+      font-size: {{ section.settings.font_size_desktop }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="custom-pure-title-section custom-title-{{ section.id }}">
+  <div class="pure-title__container">
+    <h2 class="pure-title__text">{{ section.settings.heading }}</h2>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "タイトル専用セクション",
+  "tag": "section",
+  "class": "section custom-title-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "セクションタイトル",
+      "default": "Pickup Brand"
+    },
+    {
+      "type": "color",
+      "id": "color_text",
+      "label": "文字の色",
+      "default": "#121212"
+    },
+    {
+      "type": "header",
+      "content": "フォントサイズ設定"
+    },
+    {
+      "type": "range",
+      "id": "font_size_desktop",
+      "min": 10,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC時の文字サイズ",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "font_size_mobile",
+      "min": 10,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "スマホ時の文字サイズ",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "パディング設定（内側の余白）"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上パディング",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下パディング",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "左パディング",
+      "default": 52
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "右パディング",
+      "default": 52
+    },
+    {
+      "type": "header",
+      "content": "マージン設定（外側の余白）"
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上マージン",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下マージン",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "タイトル専用セクション"
+    }
+  ]
+}
+{% endschema %}

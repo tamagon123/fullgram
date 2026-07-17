@@ -1,0 +1,37 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "c_contact": {
+      "type": "c_contact-form",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "show_page_title": true,
+        "label": "CONTACT",
+        "label_font_size": 12,
+        "heading": "お問い合わせ",
+        "heading_font_size": 0,
+        "description": "<p>ご質問・ご不明な点がございましたら、下記フォームよりお気軽にお問い合わせください。</p>",
+        "description_font_size": 12,
+        "show_subject": true,
+        "subject_label": "件名",
+        "textarea_rows": 8,
+        "button_label": "送信する",
+        "show_privacy_notice": false,
+        "privacy_notice": "<p><a href=\"/pages/privacy-policy\">プライバシーポリシー</a>に同意の上、送信してください。</p>",
+        "padding_top": 60,
+        "padding_bottom": 80
+      }
+    }
+  },
+  "order": [
+    "c_contact"
+  ]
+}

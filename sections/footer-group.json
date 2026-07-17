@@ -1,0 +1,112 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "Custom Footer",
+  "type": "footer",
+  "sections": {
+    "c_footer": {
+      "type": "c_footer",
+      "blocks": {
+        "link_list": {
+          "type": "link_list",
+          "settings": {
+            "heading": "",
+            "menu": "main-menu",
+            "margin_top": 0,
+            "margin_left": 0,
+            "margin_right": 0,
+            "font_size": 0,
+            "use_custom_font_color": false,
+            "font_color": "#000000",
+            "item_gap": 0,
+            "margin_bottom": 0
+          }
+        },
+        "link_row_dTBded": {
+          "type": "link_row",
+          "settings": {
+            "separator": "｜",
+            "label_1": "© 2026 fullgram",
+            "link_1": "",
+            "label_2": "返金ポリシー",
+            "link_2": "",
+            "label_3": "プライバシーポリシー",
+            "link_3": "",
+            "label_4": "利用規約",
+            "link_4": "",
+            "label_5": "配送ポリシー",
+            "link_5": "",
+            "label_6": "",
+            "link_6": "",
+            "alignment": "left",
+            "item_gap": 8,
+            "font_size": 14,
+            "use_custom_font_color": true,
+            "font_color": "#2A2A2A",
+            "margin_top": 0,
+            "margin_left": 0,
+            "margin_right": 0,
+            "margin_bottom": 0
+          }
+        },
+        "social_wgCweD": {
+          "type": "social",
+          "settings": {
+            "alignment": "right",
+            "margin_top": 0,
+            "icon_size": 22,
+            "margin_left": 0,
+            "margin_right": 0,
+            "font_size": 0,
+            "use_custom_font_color": false,
+            "font_color": "#000000",
+            "margin_bottom": 0
+          }
+        },
+        "payment_GfeEYb": {
+          "type": "payment",
+          "settings": {
+            "use_shopify_icons": true,
+            "icon_size": 56,
+            "alignment": "center",
+            "margin_top": 0,
+            "margin_left": 0,
+            "margin_right": 0,
+            "font_size": 0,
+            "use_custom_font_color": false,
+            "font_color": "#000000",
+            "margin_bottom": 0
+          }
+        }
+      },
+      "block_order": [
+        "link_list",
+        "link_row_dTBded",
+        "social_wgCweD",
+        "payment_GfeEYb"
+      ],
+      "settings": {
+        "background_color": "#c6c6c6",
+        "color_scheme": "scheme-1",
+        "link_font_size": 14,
+        "padding_top": 40,
+        "padding_bottom": 40,
+        "horizontal_padding": 20,
+        "bottom_border": true,
+        "bottom_border_color": "#a1a1a1",
+        "bottom_margin_top": 24,
+        "bottom_padding_top": 16
+      }
+    }
+  },
+  "order": [
+    "c_footer"
+  ]
+}

@@ -1,0 +1,103 @@
+{% comment %}
+  =============================================================================
+  c_card-product.liquid
+  =============================================================================
+  作成日: 2026-06-27
+  作成者: s.tamaki (Devin)
+
+  目的:
+    参考サイト（https://panio2014.com/）に近づけるための
+    カスタム「商品カード」スニペット。
+    元の card-product.liquid をコピーし、
+    ・1pxグリッド罫線スタイル
+    ・角丸リセット
+    ・価格・商品名のフォント調整
+    等を加えるためのベースファイル。
+
+  変更履歴:
+    2026-06-27 - 初回作成。card-product.liquid をコピー。
+                 今後スタイル・レイアウト調整予定。
+  =============================================================================
+
+  Renders a product card
+
+  Accepts:
+  - card_product: {Object} Product Liquid object (optional)
+  - media_aspect_ratio: {String} Size of the product image card. Values are "square" and "portrait". Default is "square" (optional)
+  - image_shape: {String} Image mask to apply to the product image card. Values are "arch", "blob", "chevronleft", "chevronright", "diamond", "parallelogram", and "round". (optional)
+  - show_secondary_image: {Boolean} Show the secondary image on hover. Default: false (optional)
+  - show_vendor: {Boolean} Show the product vendor. Default: false
+  - show_rating: {Boolean} Show the product rating. Default: false
+  - extend_height: {Boolean} Card height extends to available container space. Default: true (optional)
+  - lazy_load: {Boolean} Image should be lazy loaded. Default: true (optional)
+  - skip_styles: {Boolean} Don't include component styles. Useful when rendering multiple product cards in a loop. Default: false (optional)
+  - quick_add: {Boolean} Show the quick add button.
+  - section_id: {String} The ID of the section that contains this card.
+  - horizontal_class: {Boolean} Add a card--horizontal class if set to true. Default: false (optional)
+  - horizontal_quick_add: {Boolean} Changes the quick add button styles when set to true. Default: false (optional)
+  - placeholder_image: {String} The placeholder image to use when no product exists. Default: 'product-apparel-2' (optional)
+
+  Usage:
+  {% render 'card-product', show_vendor: section.settings.show_vendor %}
+{% endcomment %}
+{%- unless skip_styles -%}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+{%- endunless -%}
+{%- if card_product and card_product != empty -%}
+  <div class="c-card">
+    <a href="{{ card_product.url }}" class="c-card__link">
+      <div class="c-card__image-wrapper">
+        {%- if card_product.featured_media -%}
+          <img
+            srcset="
+              {%- if card_product.featured_media.width >= 400 -%}{{ card_product.featured_media | image_url: width: 400 }} 400w,{%- endif -%}
+              {%- if card_product.featured_media.width >= 800 -%}{{ card_product.featured_media | image_url: width: 800 }} 800w,{%- endif -%}
+              {{ card_product.featured_media | image_url }} {{ card_product.featured_media.width }}w
+            "
+            src="{{ card_product.featured_media | image_url: width: 600 }}"
+            alt="{{ card_product.featured_media.alt | escape }}"
+            loading="lazy"
+            width="{{ card_product.featured_media.width }}"
+            height="{{ card_product.featured_media.height }}"
+            class="c-card__image"
+          >
+          {%- if card_product.media[1] != null and show_secondary_image -%}
+            <img
+              src="{{ card_product.media[1] | image_url: width: 600 }}"
+              alt="{{ card_product.media[1].alt | escape }}"
+              loading="lazy"
+              class="c-card__image c-card__image--secondary"
+            >
+          {%- endif -%}
+        {%- else -%}
+          {{ 'product-apparel-2' | placeholder_svg_tag: 'placeholder-svg c-card__image' }}
+        {%- endif -%}
+        {%- if card_product.available == false -%}
+          <span class="c-card__badge">SOLD OUT</span>
+        {%- endif -%}
+      </div>
+      <div class="c-card__info">
+        <p class="c-card__vendor">{{ card_product.vendor }}</p>
+        <p class="c-card__title">{{ card_product.title | escape }}</p>
+        <p class="c-card__price">
+          {%- if card_product.compare_at_price > card_product.price -%}
+            <s class="c-card__price--compare">{{ card_product.compare_at_price | money }}</s>
+            <span class="c-card__price--sale">{{ card_product.price | money }}</span>
+          {%- else -%}
+            {{ card_product.price | money }}
+          {%- endif -%}
+        </p>
+      </div>
+    </a>
+  </div>
+{%- else -%}
+  <div class="c-card c-card--placeholder">
+    <div class="c-card__image-wrapper">
+      {{ 'product-apparel-2' | placeholder_svg_tag: 'placeholder-svg c-card__image' }}
+    </div>
+    <div class="c-card__info">
+      <p class="c-card__vendor">{{ 'products.product.vendor' | t }}</p>
+      <p class="c-card__title">{{ 'onboarding.product_title' | t }}</p>
+    </div>
+  </div>
+{%- endif -%}

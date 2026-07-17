@@ -1,0 +1,467 @@
+{% comment %}
+  =============================================================================
+  c_header.liquid
+  =============================================================================
+
+  カスタムヘッダー。
+  ロゴ / メニュー / アイコン を左・中央・右の任意の位置に配置可能。
+  =============================================================================
+{% endcomment %}
+
+{{ 'component-list-menu.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .c-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px 1.6rem;
+    background: rgb(var(--color-background));
+  }
+
+  @media screen and (min-width: 990px) {
+    .c-header {
+      padding: {{ section.settings.padding_top }}px 3rem;
+    }
+  }
+
+  .c-header__slot {
+    display: flex;
+    align-items: center;
+    gap: {{ section.settings.item_gap }}px;
+    flex: 1 1 0;
+  }
+
+  .c-header__slot--left   { justify-content: flex-start; }
+  .c-header__slot--center { justify-content: center;    flex: 0 0 auto; }
+  .c-header__slot--right  { justify-content: flex-end;  }
+
+  .c-header__logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: rgb(var(--color-foreground));
+  }
+
+  .c-header__logo img {
+    display: block;
+    width: {{ section.settings.logo_width }}px;
+    height: auto;
+  }
+
+  .c-header__logo-text {
+    font-family: var(--font-heading-family);
+    font-weight: var(--font-heading-weight);
+    font-size: {{ section.settings.logo_font_size }}px;
+    letter-spacing: var(--font-heading-letter-spacing);
+    line-height: 1;
+  }
+
+  .c-header__menu .list-menu--inline {
+    gap: {{ section.settings.item_gap }}px;
+  }
+
+  .c-header__menu .list-menu__item {
+    font-family: var(--font-body-family);
+    font-size: {{ section.settings.menu_font_size }}px;
+    font-weight: {{ section.settings.menu_font_weight }};
+    letter-spacing: var(--font-body-letter-spacing);
+    text-decoration: none;
+    color: rgb(var(--color-foreground));
+  }
+
+  .c-header__menu .header__active-menu-item {
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+  }
+
+  .c-header__icons {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .c-header__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.4rem;
+    height: 4.4rem;
+    color: rgb(var(--color-foreground));
+    text-decoration: none;
+    position: relative;
+  }
+
+  .c-header__icon .svg-wrapper {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .c-header__icon .svg-wrapper svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .c-header__cart-count {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.4rem;
+    background: rgb(var(--color-button));
+    color: rgb(var(--color-button-text));
+    border-radius: 50%;
+    min-width: 1.8rem;
+    height: 1.8rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  /* mobile drawer button */
+  .c-header__drawer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.4rem;
+    height: 4.4rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgb(var(--color-foreground));
+  }
+
+  .c-header__drawer-btn .svg-wrapper {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  @media screen and (max-width: 989px) {
+    .c-header__slot--center { flex: 1 1 0; }
+    .c-header__menu { display: none; }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign logo_in_left   = false
+  assign logo_in_center = false
+  assign logo_in_right  = false
+
+  assign menu_in_left   = false
+  assign menu_in_center = false
+  assign menu_in_right  = false
+
+  assign icons_in_left   = false
+  assign icons_in_center = false
+  assign icons_in_right  = false
+
+  case section.settings.logo_alignment
+    when 'left'
+      assign logo_in_left = true
+    when 'center'
+      assign logo_in_center = true
+    when 'right'
+      assign logo_in_right = true
+  endcase
+
+  case section.settings.menu_alignment
+    when 'left'
+      assign menu_in_left = true
+    when 'center'
+      assign menu_in_center = true
+    when 'right'
+      assign menu_in_right = true
+  endcase
+
+  case section.settings.icons_alignment
+    when 'left'
+      assign icons_in_left = true
+    when 'center'
+      assign icons_in_center = true
+    when 'right'
+      assign icons_in_right = true
+  endcase
+-%}
+
+<header class="c-header color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_border_bottom %} header-wrapper--border-bottom{% endif %}">
+  {# ----- LEFT SLOT ----- #}
+  <div class="c-header__slot c-header__slot--left">
+    {%- if icons_in_left -%}
+      <div class="c-header__icons">
+        <a href="{{ routes.cart_url }}" class="c-header__icon" id="cart-icon-bubble">
+          {% if cart == empty %}
+            <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
+          {% else %}
+            <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
+          {% endif %}
+          {%- if cart != empty -%}
+            <div class="c-header__cart-count">{{ cart.item_count }}</div>
+          {%- endif -%}
+        </a>
+      </div>
+    {%- endif -%}
+
+    {%- if logo_in_left -%}
+      {%- if request.page_type == 'index' -%}<h1 class="c-header__logo-wrap">{%- endif -%}
+      <a href="{{ routes.root_url }}" class="c-header__logo">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: section.settings.logo_width }}"
+               alt="{{ settings.logo.alt | default: shop.name | escape }}"
+               width="{{ section.settings.logo_width }}"
+               height="{{ settings.logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+               loading="eager" />
+        {%- else -%}
+          <span class="c-header__logo-text">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+      {%- if request.page_type == 'index' -%}</h1>{%- endif -%}
+    {%- endif -%}
+
+    {%- if menu_in_left and section.settings.menu != blank -%}
+      <div class="c-header__menu">
+        {%- render 'header-dropdown-menu' -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {# ----- CENTER SLOT ----- #}
+  <div class="c-header__slot c-header__slot--center">
+    {%- if icons_in_center -%}
+      <div class="c-header__icons">
+        <a href="{{ routes.cart_url }}" class="c-header__icon" id="cart-icon-bubble">
+          {% if cart == empty %}
+            <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
+          {% else %}
+            <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
+          {% endif %}
+          {%- if cart != empty -%}
+            <div class="c-header__cart-count">{{ cart.item_count }}</div>
+          {%- endif -%}
+        </a>
+      </div>
+    {%- endif -%}
+
+    {%- if logo_in_center -%}
+      {%- if request.page_type == 'index' -%}<h1 class="c-header__logo-wrap">{%- endif -%}
+      <a href="{{ routes.root_url }}" class="c-header__logo">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: section.settings.logo_width }}"
+               alt="{{ settings.logo.alt | default: shop.name | escape }}"
+               width="{{ section.settings.logo_width }}"
+               height="{{ settings.logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+               loading="eager" />
+        {%- else -%}
+          <span class="c-header__logo-text">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+      {%- if request.page_type == 'index' -%}</h1>{%- endif -%}
+    {%- endif -%}
+
+    {%- if menu_in_center and section.settings.menu != blank -%}
+      <div class="c-header__menu">
+        {%- render 'header-dropdown-menu' -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {# ----- RIGHT SLOT ----- #}
+  <div class="c-header__slot c-header__slot--right">
+    {%- if icons_in_right -%}
+      <div class="c-header__icons">
+        <a href="{{ routes.cart_url }}" class="c-header__icon" id="cart-icon-bubble">
+          {% if cart == empty %}
+            <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
+          {% else %}
+            <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
+          {% endif %}
+          {%- if cart != empty -%}
+            <div class="c-header__cart-count">{{ cart.item_count }}</div>
+          {%- endif -%}
+        </a>
+      </div>
+    {%- endif -%}
+
+    {%- if logo_in_right -%}
+      {%- if request.page_type == 'index' -%}<h1 class="c-header__logo-wrap">{%- endif -%}
+      <a href="{{ routes.root_url }}" class="c-header__logo">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: section.settings.logo_width }}"
+               alt="{{ settings.logo.alt | default: shop.name | escape }}"
+               width="{{ section.settings.logo_width }}"
+               height="{{ settings.logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+               loading="eager" />
+        {%- else -%}
+          <span class="c-header__logo-text">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+      {%- if request.page_type == 'index' -%}</h1>{%- endif -%}
+    {%- endif -%}
+
+    {%- if menu_in_right and section.settings.menu != blank -%}
+      <div class="c-header__menu">
+        {%- render 'header-dropdown-menu' -%}
+      </div>
+    {%- endif -%}
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "★ Custom Header",
+  "tag": "header",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "配置設定"
+    },
+    {
+      "type": "select",
+      "id": "logo_alignment",
+      "label": "ロゴの配置",
+      "options": [
+        { "value": "left",   "label": "左"   },
+        { "value": "center", "label": "中央" },
+        { "value": "right",  "label": "右"   }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "menu_alignment",
+      "label": "メニューの配置",
+      "options": [
+        { "value": "left",   "label": "左"   },
+        { "value": "center", "label": "中央" },
+        { "value": "right",  "label": "右"   }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "icons_alignment",
+      "label": "アイコンの配置",
+      "options": [
+        { "value": "left",   "label": "左"   },
+        { "value": "center", "label": "中央" },
+        { "value": "right",  "label": "右"   }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "メニュー設定"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "メニュー",
+      "default": "main-menu"
+    },
+    {
+      "type": "color_scheme",
+      "id": "menu_color_scheme",
+      "label": "メニューカラースキーム",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "ロゴ設定"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "label": "ロゴ幅",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "logo_font_size",
+      "min": 16,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "label": "ロゴテキストサイズ",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "フォント設定（メニュー）"
+    },
+    {
+      "type": "range",
+      "id": "menu_font_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "メニューフォントサイズ",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "menu_font_weight",
+      "label": "メニューフォント太さ",
+      "options": [
+        { "value": "300", "label": "Light (300)" },
+        { "value": "400", "label": "Regular (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semi Bold (600)" },
+        { "value": "700", "label": "Bold (700)" },
+        { "value": "800", "label": "Extra Bold (800)" }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "header",
+      "content": "間隔・余白"
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "要素間の間隔",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "上余白",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "下余白",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_border_bottom",
+      "label": "下線を表示",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "カラースキーム",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

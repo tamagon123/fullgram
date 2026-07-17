@@ -1,0 +1,351 @@
+{% comment %}
+  =============================================================================
+  c_contact-form.liquid
+  =============================================================================
+  作成日: 2026-07-11
+  作成者: s.tamaki
+
+  目的:
+    panio2014.com 風のコンタクトフォームセクション。
+    ミニマルなボーダーボトムスタイルのフォームフィールドと、
+    シンプルなブラック送信ボタンを持つ。
+
+  変更履歴:
+    2026-07-11 - 新規作成
+  =============================================================================
+{% endcomment %}
+
+{%- style -%}
+  #c-contact-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+  @media screen and (max-width: 749px) {
+    #c-contact-{{ section.id }} {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+  }
+  {%- if section.settings.label_font_size > 0 -%}
+  #c-contact-{{ section.id }} .c-contact__label {
+    font-size: {{ section.settings.label_font_size }}px;
+  }
+  {%- endif -%}
+  {%- if section.settings.heading_font_size > 0 -%}
+  #c-contact-{{ section.id }} .c-contact__heading {
+    font-size: {{ section.settings.heading_font_size }}px;
+  }
+  {%- endif -%}
+  {%- if section.settings.description_font_size > 0 -%}
+  #c-contact-{{ section.id }} .c-contact__description {
+    font-size: {{ section.settings.description_font_size }}px;
+  }
+  {%- endif -%}
+{%- endstyle -%}
+
+<div id="c-contact-{{ section.id }}" class="c-contact color-{{ section.settings.color_scheme }}">
+  <div class="c-contact__inner page-width">
+
+    {%- if section.settings.show_page_title -%}
+      <div class="c-contact__header">
+        <p class="c-contact__label">{{ section.settings.label | default: 'CONTACT' }}</p>
+        {%- if section.settings.heading != blank -%}
+          <h1 class="c-contact__heading">{{ section.settings.heading }}</h1>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+          <div class="c-contact__description">{{ section.settings.description }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign contact_form_class = 'c-contact__form'
+      if settings.animations_reveal_on_scroll
+        assign contact_form_class = 'c-contact__form scroll-trigger animate--slide-in'
+      endif
+    -%}
+
+    {%- form 'contact', id: 'CContactForm', class: contact_form_class -%}
+
+      {%- if form.posted_successfully? -%}
+        <div class="c-contact__success" tabindex="-1" autofocus>
+          <p>{{ 'templates.contact.form.post_success' | t }}</p>
+        </div>
+      {%- elsif form.errors -%}
+        <div class="c-contact__error" role="alert" tabindex="-1" autofocus>
+          <p>{{ 'templates.contact.form.error_heading' | t }}</p>
+          <ul>
+            {%- if form.errors contains 'email' -%}
+              <li>
+                <a href="#CContactForm-email">
+                  {{ form.errors.translated_fields.email | capitalize }}
+                  {{ form.errors.messages.email }}
+                </a>
+              </li>
+            {%- endif -%}
+          </ul>
+        </div>
+      {%- endif -%}
+
+      <div class="c-contact__row c-contact__row--2col">
+        <div class="c-contact__field">
+          <input
+            class="c-contact__input"
+            autocomplete="name"
+            type="text"
+            id="CContactForm-name"
+            name="contact[{{ 'templates.contact.form.name' | t }}]"
+            value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+            placeholder=" "
+          >
+          <label class="c-contact__label-field" for="CContactForm-name">
+            {{ 'templates.contact.form.name' | t }}
+          </label>
+        </div>
+
+        <div class="c-contact__field">
+          <input
+            autocomplete="email"
+            type="email"
+            id="CContactForm-email"
+            class="c-contact__input{% if form.errors contains 'email' %} c-contact__input--error{% endif %}"
+            name="contact[email]"
+            spellcheck="false"
+            autocapitalize="off"
+            value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+            aria-required="true"
+            {% if form.errors contains 'email' %}
+              aria-invalid="true"
+              aria-describedby="CContactForm-email-error"
+            {% endif %}
+            placeholder=" "
+          >
+          <label class="c-contact__label-field" for="CContactForm-email">
+            {{ 'templates.contact.form.email' | t }}<span aria-hidden="true">*</span>
+          </label>
+          {%- if form.errors contains 'email' -%}
+            <small class="c-contact__field-error" id="CContactForm-email-error">
+              {{ form.errors.translated_fields.email | capitalize }}
+              {{ form.errors.messages.email }}
+            </small>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="c-contact__field">
+        <input
+          type="tel"
+          id="CContactForm-phone"
+          class="c-contact__input"
+          autocomplete="tel"
+          name="contact[{{ 'templates.contact.form.phone' | t }}]"
+          pattern="[0-9\-]*"
+          value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
+          placeholder=" "
+        >
+        <label class="c-contact__label-field" for="CContactForm-phone">
+          {{ 'templates.contact.form.phone' | t }}
+        </label>
+      </div>
+
+      {%- if section.settings.show_subject -%}
+        <div class="c-contact__field">
+          <input
+            type="text"
+            id="CContactForm-subject"
+            class="c-contact__input"
+            name="contact[{{ section.settings.subject_label | default: '件名' }}]"
+            value="{% if form['件名'] %}{{ form['件名'] }}{% endif %}"
+            placeholder=" "
+          >
+          <label class="c-contact__label-field" for="CContactForm-subject">
+            {{ section.settings.subject_label | default: '件名' }}
+          </label>
+        </div>
+      {%- endif -%}
+
+      <div class="c-contact__field c-contact__field--textarea">
+        <textarea
+          rows="{{ section.settings.textarea_rows | default: 8 }}"
+          id="CContactForm-body"
+          class="c-contact__textarea"
+          name="contact[{{ 'templates.contact.form.comment' | t }}]"
+          placeholder=" "
+        >{{- form.body -}}</textarea>
+        <label class="c-contact__label-field" for="CContactForm-body">
+          {{ 'templates.contact.form.comment' | t }}
+        </label>
+      </div>
+
+      {%- if section.settings.show_privacy_notice and section.settings.privacy_notice != blank -%}
+        <div class="c-contact__privacy">
+          {{ section.settings.privacy_notice }}
+        </div>
+      {%- endif -%}
+
+      <div class="c-contact__submit">
+        <button type="submit" class="c-contact__button">
+          {{ section.settings.button_label | default: '送信する' }}
+        </button>
+      </div>
+
+    {%- endform -%}
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "カスタム コンタクトフォーム",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "ページヘッダー"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_page_title",
+      "label": "ページタイトルを表示",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "ラベル（小見出し）",
+      "default": "CONTACT"
+    },
+    {
+      "type": "range",
+      "id": "label_font_size",
+      "label": "ラベルのフォントサイズ (px)",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "info": "0 にするとデフォルトサイズ（12px）を使用します"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "見出し",
+      "default": "お問い合わせ"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "見出しのフォントサイズ (px)",
+      "min": 0,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "info": "0 にするとデフォルトサイズ（レスポンシブ）を使用します"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "説明文",
+      "default": "<p>ご質問・ご不明な点がございましたら、下記フォームよりお気軽にお問い合わせください。</p>"
+    },
+    {
+      "type": "range",
+      "id": "description_font_size",
+      "label": "説明文のフォントサイズ (px)",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "info": "0 にするとデフォルトサイズ（14px）を使用します"
+    },
+    {
+      "type": "header",
+      "content": "フォーム設定"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subject",
+      "label": "件名フィールドを表示",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "subject_label",
+      "label": "件名ラベル",
+      "default": "件名"
+    },
+    {
+      "type": "range",
+      "id": "textarea_rows",
+      "min": 4,
+      "max": 20,
+      "step": 1,
+      "label": "テキストエリアの行数",
+      "default": 8
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "送信ボタンのテキスト",
+      "default": "送信する"
+    },
+    {
+      "type": "header",
+      "content": "プライバシーポリシー"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_privacy_notice",
+      "label": "プライバシーポリシー注記を表示",
+      "default": false
+    },
+    {
+      "type": "richtext",
+      "id": "privacy_notice",
+      "label": "プライバシーポリシー文",
+      "default": "<p><a href=\"/pages/privacy-policy\">プライバシーポリシー</a>に同意の上、送信してください。</p>"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "カスタム コンタクトフォーム"
+    }
+  ]
+}
+{% endschema %}

@@ -107,8 +107,8 @@ class ProductCSVGenerator {
                 });
             }
             this.dataBrands = br;
-            this.dataTags = tg.tags || [];
-            this.dataCollections = cl.collections || [];
+            this.dataTags = Array.isArray(tg.tags) ? tg.tags.map(t => typeof t === 'string' ? t : (t.name || '')).filter(Boolean) : [];
+            this.dataCollections = Array.isArray(cl.collections) ? cl.collections.map(c => typeof c === 'string' ? c : (c.name || '')).filter(Boolean) : [];
         } catch (e) {
             console.warn('Data files not loaded:', e);
         }
@@ -383,14 +383,15 @@ class ProductCSVGenerator {
         const fields = MEASUREMENT_FIELDS[measurementType];
         if (fields && measurementRows.length > 0 && measurementRows.some(r => r.size || fields.some(f => r[this.measurementKey(f)]))) {
             if (html) html += '<p>&nbsp;</p>';
-            html += '<div class="rte-table-wrapper"><table style="width: auto;"><tbody>';
-            html += `<tr><td>Size${(measurementType === 'shoes' || measurementType === 'bag' || measurementType === 'accessories' || measurementType === 'other') ? '' : ' (cm)'}</td>`;
-            fields.forEach(field => { html += `<td>${this.escapeHtml(field)}</td>`; });
+            const sizeHeader = `Size${(measurementType === 'shoes' || measurementType === 'bag' || measurementType === 'accessories' || measurementType === 'other') ? '' : ' (cm)'}`;
+            html += '<div class="rte-table-wrapper"><table style="width: auto; border-collapse: collapse; border-top: 1px solid #000; border-bottom: 1px solid #000;"><tbody>';
+            html += `<tr style="border-bottom: 1px solid #000;"><td style="border: none; padding: 6px 12px;">${this.escapeHtml(sizeHeader)}</td>`;
+            fields.forEach(field => { html += `<td style="border: none; padding: 6px 12px;">${this.escapeHtml(field)}</td>`; });
             html += '</tr>';
             measurementRows.forEach(row => {
-                html += `<tr><td>${this.escapeHtml(row.size || '')}</td>`;
+                html += `<tr><td style="border: none; padding: 6px 12px;">${this.escapeHtml(row.size || '')}</td>`;
                 fields.forEach(field => {
-                    html += `<td>${this.escapeHtml(row[this.measurementKey(field)] || '')}</td>`;
+                    html += `<td style="border: none; padding: 6px 12px;">${this.escapeHtml(row[this.measurementKey(field)] || '')}</td>`;
                 });
                 html += '</tr>';
             });
@@ -561,7 +562,7 @@ class ProductCSVGenerator {
             <div class="data-list-item">
                 <div class="data-list-item-info">
                     <span class="data-list-item-name">${this.escapeHtml(name)}</span>
-                    <span class="data-list-item-code">${this.escapeHtml(info.code || '')}</span>
+                    <span class="data-list-item-code">${this.escapeHtml(info.reading || '')} / ${this.escapeHtml(info.code || '')}</span>
                 </div>
                 <button class="data-list-item-remove" onclick="app.removeDataItem('brands','${this.escapeHtml(name).replace(/'/g, "\\'")}")">&times;</button>
             </div>
@@ -624,32 +625,35 @@ class ProductCSVGenerator {
             const escName = this.escapeHtml(name).replace(/'/g, "\\'");
             return `<div class="data-list-item"><div class="data-list-item-info"><span class="data-list-item-name">${this.escapeHtml(name)}</span><span class="data-list-item-code">${this.escapeHtml(info.code)}</span></div><button class="data-list-item-remove" onclick="app.removeSizeItem('other','${escName}')">&times;</button></div>`;
         }).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
-        // Tags
+        // Tags (view-only from task manager)
         const tagsList = document.getElementById('tagsList');
-        const sortedTags = [...this.dataTags].sort((a, b) => a.localeCompare(b));
-        tagsList.innerHTML = sortedTags.length ? sortedTags.map((tag, i) => `
+        const sortedTags = [...this.dataTags].filter(Boolean).sort((a, b) => a.localeCompare(b));
+        tagsList.innerHTML = sortedTags.length ? sortedTags.map((tag) => `
             <div class="data-list-item">
                 <div class="data-list-item-info">
                     <span class="data-list-item-name">${this.escapeHtml(tag)}</span>
                 </div>
-                <button class="data-list-item-remove" onclick="app.removeDataItem('tags',${i})">&times;</button>
             </div>
         `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
 
-        // Collections
+        // Collections (view-only from task manager)
         const collectionsList = document.getElementById('collectionsList');
-        const sortedCollections = [...this.dataCollections].sort((a, b) => a.localeCompare(b));
-        collectionsList.innerHTML = sortedCollections.length ? sortedCollections.map((col, i) => `
+        const sortedCollections = [...this.dataCollections].filter(Boolean).sort((a, b) => a.localeCompare(b));
+        collectionsList.innerHTML = sortedCollections.length ? sortedCollections.map((col) => `
             <div class="data-list-item">
                 <div class="data-list-item-info">
                     <span class="data-list-item-name">${this.escapeHtml(col)}</span>
                 </div>
-                <button class="data-list-item-remove" onclick="app.removeDataItem('collections',${i})">&times;</button>
             </div>
         `).join('') : '<div class="data-list-item"><span style="color:var(--color-text-muted)">データがありません</span></div>';
     }
 
     addDataItem(type) {
+        // ブランド・タグ・コレクションはタスク内のデータ登録画面で管理するため、ここでは編集不可
+        if (['brands', 'tags', 'collections'].includes(type)) {
+            alert('ブランド・タグ・コレクションは、タスク > データ登録 から管理してください。こちらは確認専用です。');
+            return;
+        }
         if (type === 'brands') {
             const name = document.getElementById('newBrandName').value.trim();
             const code = document.getElementById('newBrandCode').value.trim().toUpperCase();
@@ -694,6 +698,11 @@ class ProductCSVGenerator {
     }
 
     removeDataItem(type, key) {
+        // ブランド・タグ・コレクションはタスク内のデータ登録画面で管理するため、ここでは削除不可
+        if (['brands', 'tags', 'collections'].includes(type)) {
+            alert('ブランド・タグ・コレクションは、タスク > データ登録 から管理してください。こちらは確認専用です。');
+            return;
+        }
         if (type === 'brands') {
             delete this.dataBrands[key];
         } else if (type === 'categories') {
@@ -1929,4 +1938,894 @@ class ProductCSVGenerator {
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new ProductCSVGenerator();
+    if (document.getElementById('policyMain')) {
+        window.policyManager = new PolicyManager();
+    }
+    if (document.getElementById('taskMenu')) {
+        window.taskManager = new TaskManager();
+    }
 });
+
+// ============================================================
+// Policy Manager for client review & approval
+// ============================================================
+class PolicyManager {
+    constructor() {
+        this.currentKey = null;
+        this.storageKey = 'policyManagerData';
+        this.loadData();
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.renderTaskList();
+    }
+
+    bindEvents() {
+        // トップページのカード
+        document.querySelectorAll('#topPage .top-menu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const target = card.dataset.target;
+                if (target === 'csv') this.showSection('csv');
+                else if (target === 'task') this.showSection('task');
+            });
+        });
+
+        // タスクメニューのカード
+        document.querySelectorAll('#taskMenu .top-menu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const target = card.dataset.target;
+                if (target === 'policy') this.showSection('policy');
+            });
+        });
+
+        // 戻るボタン
+        document.getElementById('csvBackBtn').addEventListener('click', () => this.showSection('top'));
+        document.getElementById('taskBackBtn').addEventListener('click', () => this.showSection('top'));
+        document.getElementById('policyBackBtn').addEventListener('click', () => this.showSection('task'));
+
+        document.getElementById('policySaveDraftBtn').addEventListener('click', () => this.saveDraft());
+        document.getElementById('policyApproveBtn').addEventListener('click', () => this.approve());
+    }
+
+    loadData() {
+        this.data = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+    }
+
+    saveData() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+    }
+
+    showSection(section) {
+        const topPage = document.getElementById('topPage');
+        const taskMenu = document.getElementById('taskMenu');
+        const dataMenu = document.getElementById('dataMenu');
+        const csvMain = document.getElementById('csvMain');
+        const policyMain = document.getElementById('policyMain');
+        const skuRuleMain = document.getElementById('skuRuleMain');
+        const brandMain = document.getElementById('brandMain');
+        const tagMain = document.getElementById('tagMain');
+        const collectionMain = document.getElementById('collectionMain');
+        const notificationMain = document.getElementById('notificationMain');
+
+        [topPage, taskMenu, dataMenu, csvMain, policyMain, skuRuleMain, brandMain, tagMain, collectionMain, notificationMain].forEach(el => {
+            if (el) el.style.display = 'none';
+        });
+
+        if (section === 'top') {
+            topPage.style.display = 'block';
+        } else if (section === 'task') {
+            taskMenu.style.display = 'block';
+        } else if (section === 'csv') {
+            csvMain.style.display = 'block';
+        } else if (section === 'policy') {
+            policyMain.style.display = 'block';
+            this.showTaskList();
+        }
+    }
+
+    showTaskList() {
+        document.getElementById('policyTaskList').style.display = 'block';
+        document.getElementById('policyEditor').style.display = 'none';
+        this.currentKey = null;
+        this.renderTaskList();
+    }
+
+    renderTaskList() {
+        const container = document.getElementById('policyTaskCards');
+        container.innerHTML = Object.values(POLICY_TEMPLATES).map(t => {
+            const status = this.getStatus(t.key);
+            return `
+                <div class="policy-task-card" data-key="${t.key}">
+                    <div class="policy-task-status">${status.approved ? '✅ 承認済み' : '⏳ 未承認'}</div>
+                    <h3>${this.escapeHtml(t.title)}</h3>
+                    <p>${this.escapeHtml(t.description)}</p>
+                    ${status.approved ? `<p class="policy-task-meta">最終承認: ${this.escapeHtml(status.lastApproved)} / バージョン: v${status.versions}</p>` : ''}
+                    <button class="btn btn-primary policy-edit-btn" data-key="${t.key}">編集・確認</button>
+                </div>
+            `;
+        }).join('');
+        container.querySelectorAll('.policy-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.openEditor(e.target.dataset.key));
+        });
+    }
+
+    getStatus(key) {
+        return this.data[key]?.status || { approved: false, lastApproved: null, versions: 0 };
+    }
+
+    openEditor(key) {
+        this.currentKey = key;
+        const tmpl = POLICY_TEMPLATES[key];
+        document.getElementById('policyTaskList').style.display = 'none';
+        document.getElementById('policyEditor').style.display = 'block';
+        document.getElementById('policyEditorTitle').textContent = tmpl.title;
+        this.renderForm(tmpl);
+        this.updatePreview();
+    }
+
+    renderForm(tmpl) {
+        const container = document.getElementById('policyFormContainer');
+        const saved = this.data[tmpl.key]?.values || {};
+        const contactValues = this.data.contact?.values || {};
+        const fieldsHtml = tmpl.fields.map(f => {
+            const value = saved[f.key] !== undefined ? saved[f.key] : (contactValues[f.key] !== undefined ? contactValues[f.key] : f.default);
+            const disabledAttr = f.disabled ? 'disabled' : '';
+            const disabledClass = f.disabled ? ' policy-input-disabled' : '';
+            let input = '';
+            if (f.type === 'textarea') {
+                input = `<textarea class="policy-input${disabledClass}" id="policyField_${f.key}" rows="4" ${disabledAttr}>${this.escapeHtml(value)}</textarea>`;
+            } else if (f.type === 'select') {
+                input = `<select class="policy-input${disabledClass}" id="policyField_${f.key}" ${disabledAttr}>${f.options.map(o => `<option value="${this.escapeHtml(o.value)}" ${o.value === value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}</select>`;
+            } else if (f.type === 'checkbox') {
+                input = `<label class="policy-checkbox-label"><input type="checkbox" id="policyField_${f.key}" ${value ? 'checked' : ''} ${disabledAttr}> ${this.escapeHtml(f.label)}</label>`;
+            } else {
+                input = `<input class="policy-input${disabledClass}" type="${f.type}" id="policyField_${f.key}" value="${this.escapeHtml(value)}" ${disabledAttr}>`;
+            }
+            return `
+                <div class="policy-form-group" data-key="${f.key}">
+                    <label for="policyField_${f.key}">${this.escapeHtml(f.label)}</label>
+                    ${f.help ? `<p class="policy-field-help">${this.escapeHtml(f.help)}</p>` : ''}
+                    ${input}
+                </div>
+            `;
+        }).join('');
+
+        const revisionNote = this.data[tmpl.key]?.revisionNote || '';
+        const revisionHtml = `
+            <div class="policy-form-group policy-revision-group">
+                <label for="policyRevisionNote">内容の訂正依頼</label>
+                <p class="policy-field-help">プレビューには反映されません。HTMLファイルの最上部に記載され、ファイル名にも反映されます。訂正依頼がない場合は空欄のまま承認してください。</p>
+                <textarea class="policy-input" id="policyRevisionNote" rows="3" placeholder="例：第3条の表現をもう少し丁寧に修正してください">${this.escapeHtml(revisionNote)}</textarea>
+            </div>
+        `;
+
+        container.innerHTML = fieldsHtml + revisionHtml;
+
+        tmpl.fields.forEach(f => {
+            if (f.disabled) return;
+            const el = document.getElementById(`policyField_${f.key}`);
+            if (el) {
+                el.addEventListener('input', () => this.updatePreview());
+                if (f.type === 'checkbox') el.addEventListener('change', () => this.updatePreview());
+            }
+        });
+    }
+
+    getFieldValues() {
+        const tmpl = POLICY_TEMPLATES[this.currentKey];
+        const values = {};
+        tmpl.fields.forEach(f => {
+            const el = document.getElementById(`policyField_${f.key}`);
+            if (!el) return;
+            if (f.type === 'checkbox') {
+                values[f.key] = el.checked;
+            } else {
+                values[f.key] = el.value;
+            }
+        });
+        return values;
+    }
+
+    buildHtml(tmpl, values) {
+        let html = tmpl.template;
+        if (values.NON_RETURNABLE_ITEMS) {
+            const items = values.NON_RETURNABLE_ITEMS.split('\n').filter(s => s.trim()).map(s => `<li>${this.escapeHtml(s.trim())}</li>`).join('\n  ');
+            html = html.replace('{{NON_RETURNABLE_ITEMS}}', items);
+        }
+        Object.keys(values).forEach(key => {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            let val = values[key];
+            if (typeof val === 'string') {
+                val = this.escapeHtml(val);
+            } else if (typeof val === 'boolean') {
+                val = val ? 'はい' : 'いいえ';
+            }
+            html = html.replace(regex, val);
+        });
+        return html;
+    }
+
+    updatePreview() {
+        if (!this.currentKey) return;
+        const tmpl = POLICY_TEMPLATES[this.currentKey];
+        const values = this.getFieldValues();
+        const html = this.buildHtml(tmpl, values);
+        document.getElementById('policyPreview').innerHTML = html;
+    }
+
+    saveDraft() {
+        const tmpl = POLICY_TEMPLATES[this.currentKey];
+        if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: { approved: false }, values: {} };
+        this.data[tmpl.key].values = this.getFieldValues();
+        const revisionEl = document.getElementById('policyRevisionNote');
+        this.data[tmpl.key].revisionNote = revisionEl ? revisionEl.value.trim() : '';
+        if (tmpl.key === 'contact') {
+            this.syncContactValues();
+        }
+        this.saveData();
+        alert('下書きを保存しました');
+    }
+
+    syncContactValues() {
+        const contactValues = this.data.contact?.values || {};
+        const sharedKeys = ['COMPANY_NAME', 'ADDRESS', 'PHONE', 'EMAIL'];
+        Object.keys(POLICY_TEMPLATES).forEach(key => {
+            if (key === 'contact') return;
+            const fieldKeys = POLICY_TEMPLATES[key].fields.map(f => f.key);
+            if (!this.data[key]) this.data[key] = { status: { approved: false }, values: {} };
+            sharedKeys.forEach(sk => {
+                if (fieldKeys.includes(sk) && contactValues[sk] !== undefined) {
+                    this.data[key].values[sk] = contactValues[sk];
+                }
+            });
+        });
+    }
+
+    approve() {
+        const tmpl = POLICY_TEMPLATES[this.currentKey];
+        const values = this.getFieldValues();
+        if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: {}, values: {} };
+        this.data[tmpl.key].values = values;
+        const revisionEl = document.getElementById('policyRevisionNote');
+        const revisionNote = revisionEl ? revisionEl.value.trim() : '';
+        this.data[tmpl.key].revisionNote = revisionNote;
+        if (tmpl.key === 'contact') {
+            this.syncContactValues();
+        }
+        const version = (this.data[tmpl.key].status.versions || 0) + 1;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        this.data[tmpl.key].status = { approved: true, lastApproved: new Date().toLocaleString('ja-JP'), versions: version };
+        this.saveData();
+
+        const html = this.buildHtml(tmpl, values);
+        const revisionComment = revisionNote ? `<!-- 訂正依頼: ${this.escapeHtml(revisionNote)} -->\n` : '';
+        const fullHtml = `<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${this.escapeHtml(tmpl.title)}</title>\n<style>\nbody { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; line-height: 1.7; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px 20px; background: #fff; }\nh2 { font-size: 1.5em; margin-top: 2em; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }\nh3 { font-size: 1.1em; margin-top: 1.5em; }\nul { padding-left: 1.5em; }\ntable { width: 100%; border-collapse: collapse; }\nth, td { padding: 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }\nth { width: 30%; }\na { color: #1a1a1a; }\n</style>\n</head>\n<body>\n${revisionComment}${html}\n</body>\n</html>`;
+
+        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const revisionSuffix = revisionNote ? `_修正依頼_${this.sanitizeFilename(revisionNote.slice(0, 20))}` : '';
+        a.download = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${a.download}\nダウンロードしたファイルは Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。`);
+        this.showTaskList();
+    }
+
+    sanitizeFilename(text) {
+        if (!text) return '';
+        return String(text).replace(/[\\/:*?"<>|\s]/g, '_').slice(0, 20);
+    }
+
+    escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+}
+
+// Default Google Apps Script config for email notifications.
+// After deploying the GAS web app, set the URL here so all users share it.
+const GAS_CONFIG = {
+    url: 'https://script.google.com/macros/s/AKfycbyGlszZU17vkEazTmi8_k7KETz6vmF5BQZW19spQqG2ufB3qHeeL69YuvTn5wE1zLmU4Q/exec',
+    token: 'fullgram-portal-token-2026',
+    toEmail: 'tamagon123@gmail.com'
+};
+
+// ============================================================
+// Task Manager for SKU rules and data management
+// ============================================================
+class TaskManager {
+    constructor() {
+        this.loadData();
+        this.loadJsonFiles().then(() => {
+            this.init();
+        });
+    }
+
+    loadData() {
+        this.brands = JSON.parse(localStorage.getItem('taskManagerData_brands') || 'null');
+        this.tags = JSON.parse(localStorage.getItem('taskManagerData_tags') || 'null');
+        this.collections = JSON.parse(localStorage.getItem('taskManagerData_collections') || 'null');
+        this.skuRuleChecks = JSON.parse(localStorage.getItem('taskManagerData_skuRuleChecks') || '{}');
+        this.gasSettings = JSON.parse(localStorage.getItem('taskManagerData_gasSettings') || '{}');
+    }
+
+    saveData() {
+        localStorage.setItem('taskManagerData_brands', JSON.stringify(this.brands));
+        localStorage.setItem('taskManagerData_tags', JSON.stringify(this.tags));
+        localStorage.setItem('taskManagerData_collections', JSON.stringify(this.collections));
+        localStorage.setItem('taskManagerData_skuRuleChecks', JSON.stringify(this.skuRuleChecks));
+        localStorage.setItem('taskManagerData_gasSettings', JSON.stringify(this.gasSettings));
+    }
+
+    async loadJsonFiles() {
+        try {
+            const [brands, tags, collections] = await Promise.all([
+                fetch('data/brands.json').then(r => r.json()).catch(() => ({})),
+                fetch('data/tags.json').then(r => r.json()).catch(() => ({ tags: [] })),
+                fetch('data/collections.json').then(r => r.json()).catch(() => ({ collections: [] }))
+            ]);
+            if (!this.brands) this.brands = brands;
+            if (!this.tags) this.tags = tags;
+            if (!this.collections) this.collections = collections;
+        } catch (e) {
+            console.error('Failed to load data files:', e);
+            if (!this.brands) this.brands = {};
+            if (!this.tags) this.tags = { tags: [] };
+            if (!this.collections) this.collections = { collections: [] };
+        }
+    }
+
+    init() {
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        document.querySelectorAll('#taskMenu .top-menu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const target = card.dataset.target;
+                if (target === 'policy') window.policyManager.showSection('policy');
+                else if (target === 'skuRule') this.showSection('skuRule');
+                else if (target === 'dataMenu') this.showSection('dataMenu');
+            });
+        });
+
+        document.querySelectorAll('#dataMenu .top-menu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const target = card.dataset.target;
+                if (target === 'brand') this.showSection('brand');
+                else if (target === 'tag') this.showSection('tag');
+                else if (target === 'collection') this.showSection('collection');
+                else if (target === 'notification') this.showSection('notification');
+            });
+        });
+
+        document.getElementById('skuRuleBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
+        document.getElementById('dataMenuBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
+        document.getElementById('brandBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
+        document.getElementById('tagBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
+        document.getElementById('collectionBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
+        document.getElementById('notificationBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
+
+        document.getElementById('gasSaveBtn')?.addEventListener('click', () => this.saveGasSettings());
+        document.getElementById('gasTestBtn')?.addEventListener('click', () => this.testGasNotification());
+    }
+
+    showSection(section) {
+        const sections = ['topPage', 'taskMenu', 'dataMenu', 'csvMain', 'policyMain', 'skuRuleMain', 'brandMain', 'tagMain', 'collectionMain', 'notificationMain'];
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        const idMap = {
+            top: 'topPage',
+            taskMenu: 'taskMenu',
+            dataMenu: 'dataMenu',
+            csv: 'csvMain',
+            policy: 'policyMain',
+            skuRule: 'skuRuleMain',
+            brand: 'brandMain',
+            tag: 'tagMain',
+            collection: 'collectionMain',
+            notification: 'notificationMain'
+        };
+        const target = document.getElementById(idMap[section] || section);
+        if (target) target.style.display = 'block';
+
+        if (section === 'skuRule') this.renderSkuRule();
+        else if (section === 'brand') this.renderBrandManager();
+        else if (section === 'tag') this.renderTagManager();
+        else if (section === 'collection') this.renderCollectionManager();
+        else if (section === 'notification') this.renderNotificationSettings();
+    }
+
+    renderNotificationSettings() {
+        const settings = this.gasSettings || {};
+        document.getElementById('gasUrlInput').value = settings.url || GAS_CONFIG.url;
+        document.getElementById('gasToEmailInput').value = settings.toEmail || GAS_CONFIG.toEmail;
+        document.getElementById('gasTokenInput').value = settings.token || GAS_CONFIG.token;
+    }
+
+    saveGasSettings() {
+        this.gasSettings = {
+            url: document.getElementById('gasUrlInput').value.trim(),
+            toEmail: document.getElementById('gasToEmailInput').value.trim(),
+            token: document.getElementById('gasTokenInput').value.trim()
+        };
+        this.saveData();
+        alert('通知設定を保存しました');
+    }
+
+    async testGasNotification() {
+        this.saveGasSettings();
+        await this.notify('通知設定', 'テスト送信', '通知設定', 'これはテスト通知です。');
+        alert('テスト通知を送信しました');
+    }
+
+    async notify(type, action, itemName, detail) {
+        const settings = this.gasSettings || {};
+        const url = settings.url || GAS_CONFIG.url;
+        const token = settings.token || GAS_CONFIG.token;
+        const toEmail = settings.toEmail || GAS_CONFIG.toEmail;
+        if (!url) return;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token,
+                    to: toEmail,
+                    type,
+                    action,
+                    itemName,
+                    detail
+                })
+            });
+        } catch (e) {
+            console.error('Notify failed:', e);
+        }
+    }
+
+    // ============================================================
+    // SKU Rule
+    // ============================================================
+    renderSkuRule() {
+        const container = document.getElementById('skuRuleContainer');
+        const saved = this.skuRuleChecks || {};
+
+        const rules = [
+            {
+                id: 'format',
+                title: '基本形式',
+                text: 'SKUは「ブランド略称（3文字）- 年（2桁）+ シーズン（1文字）- カテゴリコード - 連番（2桁、任意）- カラー - サイズ」で構成されます。',
+                example: '例：FGM-26S-JK-01-RD-S0'
+            },
+            {
+                id: 'brand',
+                title: 'ブランド略称（3文字）',
+                text: 'ブランド名から3文字の英字を使用します。例：Fullgram → FGM',
+                example: ''
+            },
+            {
+                id: 'year',
+                title: '年（2桁）',
+                text: '発売年の下2桁を使用します。例：2026年 → 26',
+                example: ''
+            },
+            {
+                id: 'season',
+                title: 'シーズン（1文字）',
+                text: 'SS（春夏）→ S、AW（秋冬）→ A を使用します。',
+                example: ''
+            },
+            {
+                id: 'category',
+                title: 'カテゴリコード',
+                text: 'カテゴリごとに決められたコードを使用します。詳細はカテゴリ管理画面を参照してください。',
+                example: '例：JK（ジャケット）、SH（シャツ）、PT（パンツ）'
+            },
+            {
+                id: 'serial',
+                title: '連番（2桁、任意）',
+                text: '同一ブランド・年・シーズン・カテゴリ内で重複を避けるための連番です。1商品のみの場合は省略可能です。',
+                example: '例：01, 02, 03'
+            },
+            {
+                id: 'color',
+                title: 'カラー',
+                text: '商品のカラー名を英字略称（2〜4文字）で表記します。',
+                example: '例：RD（レッド）、BK（ブラック）、NV（ネイビー）'
+            },
+            {
+                id: 'size',
+                title: 'サイズ',
+                text: '商品のサイズを英数字で表記します。',
+                example: '例：S0, M0, L0, F0（フリーサイズ）'
+            }
+        ];
+
+        container.innerHTML = `
+            <div class="sku-rule-list">
+                ${rules.map((rule, idx) => {
+                    const check = saved[rule.id] || { ok: false, note: '' };
+                    return `
+                        <div class="sku-rule-item" data-id="${rule.id}">
+                            <div class="sku-rule-header">
+                                <span class="sku-rule-number">${idx + 1}</span>
+                                <h3>${this.escapeHtml(rule.title)}</h3>
+                            </div>
+                            <p class="sku-rule-text">${this.escapeHtml(rule.text)}</p>
+                            ${rule.example ? `<p class="sku-rule-example">${this.escapeHtml(rule.example)}</p>` : ''}
+                            <div class="sku-rule-checks">
+                                <label class="sku-rule-ok"><input type="checkbox" id="skuOk_${rule.id}" ${check.ok ? 'checked' : ''}> OK</label>
+                                <div class="sku-rule-correction">
+                                    <label for="skuNote_${rule.id}">訂正依頼</label>
+                                    <input type="text" id="skuNote_${rule.id}" value="${this.escapeHtml(check.note)}" placeholder="訂正があれば入力してください">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="sku-rule-overall">
+                <label for="skuOverallNote">全体の訂正依頼</label>
+                <textarea id="skuOverallNote" rows="4" placeholder="全体に関する追加項目や訂正があれば入力してください">${this.escapeHtml(saved.overallNote || '')}</textarea>
+            </div>
+            <div class="sku-rule-actions">
+                <button id="skuSaveBtn" class="btn btn-secondary">下書き保存</button>
+                <button id="skuExportBtn" class="btn btn-success">確認結果をテキスト出力</button>
+            </div>
+            <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                <p><strong>出力について：</strong>「確認結果をテキスト出力」を押すと、各項目のOK/訂正依頼内容をまとめたテキストファイルがダウンロードされます。ダウンロードしたファイルは Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。古いファイルは削除する必要はありません。</p>
+            </div>
+        `;
+
+        document.getElementById('skuSaveBtn').addEventListener('click', () => this.saveSkuRule());
+        document.getElementById('skuExportBtn').addEventListener('click', () => this.exportSkuRule());
+    }
+
+    saveSkuRule() {
+        const items = document.querySelectorAll('#skuRuleContainer .sku-rule-item');
+        const checks = {};
+        items.forEach(item => {
+            const id = item.dataset.id;
+            checks[id] = {
+                ok: document.getElementById(`skuOk_${id}`).checked,
+                note: document.getElementById(`skuNote_${id}`).value.trim()
+            };
+        });
+        checks.overallNote = document.getElementById('skuOverallNote').value.trim();
+        this.skuRuleChecks = checks;
+        this.saveData();
+        alert('下書きを保存しました');
+    }
+
+    exportSkuRule() {
+        this.saveSkuRule();
+        const checks = this.skuRuleChecks;
+        const ruleTitles = {
+            format: '基本形式',
+            brand: 'ブランド略称（3文字）',
+            year: '年（2桁）',
+            season: 'シーズン（1文字）',
+            category: 'カテゴリコード',
+            serial: '連番（2桁、任意）',
+            color: 'カラー',
+            size: 'サイズ'
+        };
+
+        let text = `SKUルール確認結果\n生成日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
+        Object.keys(ruleTitles).forEach(id => {
+            const check = checks[id] || { ok: false, note: '' };
+            text += `■ ${ruleTitles[id]}\n`;
+            text += `状態: ${check.ok ? 'OK' : (check.note ? '訂正あり' : '未確認')}\n`;
+            if (check.note) text += `訂正依頼: ${check.note}\n`;
+            text += `\n`;
+        });
+        text += `--------------------------------\n全体の訂正依頼:\n${checks.overallNote || 'なし'}\n`;
+
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sku-rule-check_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // Brand Manager
+    // ============================================================
+    renderBrandManager() {
+        const container = document.getElementById('brandManager');
+        const entries = Object.entries(this.brands || {}).sort((a, b) => a[0].localeCompare(b[0]));
+
+        container.innerHTML = `
+            <div class="data-manager">
+                <div class="data-form">
+                    <h3>ブランドを追加</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ブランド名</label>
+                            <input type="text" id="brandInputName" placeholder="例：Fullgram">
+                        </div>
+                        <div class="form-group">
+                            <label>読み</label>
+                            <input type="text" id="brandInputReading" placeholder="例：フルグラム">
+                        </div>
+                        <div class="form-group">
+                            <label>SKU用3文字</label>
+                            <input type="text" id="brandInputCode" maxlength="3" placeholder="例：FGM">
+                        </div>
+                    </div>
+                    <button id="brandAddBtn" class="btn btn-primary">追加</button>
+                </div>
+                <div class="data-table-wrap">
+                    <h3>登録済みブランド</h3>
+                    <table class="data-manager-table">
+                        <thead>
+                            <tr><th>ブランド名</th><th>読み</th><th>SKU用3文字</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            ${entries.map(([name, info]) => `
+                                <tr data-name="${this.escapeHtml(name)}">
+                                    <td>${this.escapeHtml(name)}</td>
+                                    <td>${this.escapeHtml(info.reading || '')}</td>
+                                    <td>${this.escapeHtml(info.code || '')}</td>
+                                    <td><button class="btn btn-danger data-remove-btn" data-type="brand" data-name="${this.escapeHtml(name).replace(/"/g, '&quot;')}">削除</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="data-actions">
+                    <button id="brandExportBtn" class="btn btn-success">brands.json としてダウンロード</button>
+                </div>
+                <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「brands.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の brands.json を参照します。古いファイルは削除する必要はありません。</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('brandAddBtn').addEventListener('click', () => this.addBrand());
+        document.getElementById('brandExportBtn').addEventListener('click', () => this.exportJson('brands'));
+        container.querySelectorAll('[data-type="brand"].data-remove-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.removeBrand(btn.dataset.name));
+        });
+    }
+
+    addBrand() {
+        const name = document.getElementById('brandInputName').value.trim();
+        const reading = document.getElementById('brandInputReading').value.trim();
+        const code = document.getElementById('brandInputCode').value.trim().toUpperCase();
+        if (!name || !reading || !code) {
+            alert('全項目を入力してください');
+            return;
+        }
+        if (!this.brands) this.brands = {};
+        this.brands[name] = { reading, code };
+        this.saveData();
+        this.notify('ブランド', '追加', name, `読み: ${reading}\nSKUコード: ${code}`);
+        this.renderBrandManager();
+    }
+
+    removeBrand(name) {
+        if (!confirm(`「${name}」を削除しますか？`)) return;
+        if (this.brands) {
+            delete this.brands[name];
+            this.saveData();
+            this.notify('ブランド', '削除', name);
+        }
+        this.renderBrandManager();
+    }
+
+    // ============================================================
+    // Tag Manager
+    // ============================================================
+    renderTagManager() {
+        const container = document.getElementById('tagManager');
+        const tags = (this.tags && this.tags.tags) ? [...this.tags.tags] : [];
+
+        container.innerHTML = `
+            <div class="data-manager">
+                <div class="data-form">
+                    <h3>タグを追加</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>タグ名</label>
+                            <input type="text" id="tagInputName" placeholder="例：新作">
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label>説明</label>
+                            <input type="text" id="tagInputDesc" placeholder="例：新入荷・新発売アイテム">
+                        </div>
+                    </div>
+                    <button id="tagAddBtn" class="btn btn-primary">追加</button>
+                </div>
+                <div class="data-table-wrap">
+                    <h3>登録済みタグ</h3>
+                    <table class="data-manager-table">
+                        <thead>
+                            <tr><th>タグ名</th><th>説明</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            ${tags.map((tag, idx) => `
+                                <tr data-idx="${idx}">
+                                    <td>${this.escapeHtml(typeof tag === 'string' ? tag : tag.name)}</td>
+                                    <td>${this.escapeHtml(typeof tag === 'string' ? '' : (tag.description || ''))}</td>
+                                    <td><button class="btn btn-danger data-remove-btn" data-type="tag" data-idx="${idx}">削除</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="data-actions">
+                    <button id="tagExportBtn" class="btn btn-success">tags.json としてダウンロード</button>
+                </div>
+                <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「tags.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の tags.json を参照します。古いファイルは削除する必要はありません。</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('tagAddBtn').addEventListener('click', () => this.addTag());
+        document.getElementById('tagExportBtn').addEventListener('click', () => this.exportJson('tags'));
+        container.querySelectorAll('[data-type="tag"].data-remove-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.removeTag(parseInt(btn.dataset.idx, 10)));
+        });
+    }
+
+    addTag() {
+        const name = document.getElementById('tagInputName').value.trim();
+        const description = document.getElementById('tagInputDesc').value.trim();
+        if (!name) {
+            alert('タグ名を入力してください');
+            return;
+        }
+        if (!this.tags) this.tags = { tags: [] };
+        if (!this.tags.tags) this.tags.tags = [];
+        this.tags.tags.push({ name, description });
+        this.saveData();
+        this.notify('タグ', '追加', name, `説明: ${description}`);
+        this.renderTagManager();
+    }
+
+    removeTag(idx) {
+        if (!confirm('このタグを削除しますか？')) return;
+        if (this.tags && this.tags.tags) {
+            const removed = this.tags.tags[idx];
+            this.tags.tags.splice(idx, 1);
+            this.saveData();
+            this.notify('タグ', '削除', typeof removed === 'string' ? removed : (removed.name || ''), `説明: ${typeof removed === 'string' ? '' : (removed.description || '')}`);
+        }
+        this.renderTagManager();
+    }
+
+    // ============================================================
+    // Collection Manager
+    // ============================================================
+    renderCollectionManager() {
+        const container = document.getElementById('collectionManager');
+        const collections = (this.collections && this.collections.collections) ? [...this.collections.collections] : [];
+        const tags = (this.tags && this.tags.tags) ? this.tags.tags.map(t => typeof t === 'string' ? t : t.name) : [];
+
+        container.innerHTML = `
+            <div class="data-manager">
+                <div class="data-form">
+                    <h3>コレクションを追加</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>コレクション名</label>
+                            <input type="text" id="collectionInputName" placeholder="例：新作アイテム">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>説明</label>
+                            <input type="text" id="collectionInputDesc" placeholder="例：新入荷・新発売のアイテムをまとめたコレクション">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>紐づけるタグ（複数選択）</label>
+                        <div class="collection-tag-checkboxes">
+                            ${tags.map(tag => `
+                                <label class="collection-tag-label"><input type="checkbox" value="${this.escapeHtml(tag)}"> ${this.escapeHtml(tag)}</label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <button id="collectionAddBtn" class="btn btn-primary">追加</button>
+                </div>
+                <div class="data-table-wrap">
+                    <h3>登録済みコレクション</h3>
+                    <table class="data-manager-table">
+                        <thead>
+                            <tr><th>コレクション名</th><th>説明</th><th>紐づけるタグ</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            ${collections.map((col, idx) => `
+                                <tr data-idx="${idx}">
+                                    <td>${this.escapeHtml(typeof col === 'string' ? col : col.name)}</td>
+                                    <td>${this.escapeHtml(typeof col === 'string' ? '' : (col.description || ''))}</td>
+                                    <td>${this.escapeHtml((typeof col === 'string' ? [] : (col.tags || [])).join(', '))}</td>
+                                    <td><button class="btn btn-danger data-remove-btn" data-type="collection" data-idx="${idx}">削除</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="data-actions">
+                    <button id="collectionExportBtn" class="btn btn-success">collections.json としてダウンロード</button>
+                </div>
+                <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「collections.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の collections.json を参照します。古いファイルは削除する必要はありません。</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('collectionAddBtn').addEventListener('click', () => this.addCollection());
+        document.getElementById('collectionExportBtn').addEventListener('click', () => this.exportJson('collections'));
+        container.querySelectorAll('[data-type="collection"].data-remove-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.removeCollection(parseInt(btn.dataset.idx, 10)));
+        });
+    }
+
+    addCollection() {
+        const name = document.getElementById('collectionInputName').value.trim();
+        const description = document.getElementById('collectionInputDesc').value.trim();
+        const tagEls = document.querySelectorAll('#collectionManager .collection-tag-checkboxes input:checked');
+        const tags = Array.from(tagEls).map(el => el.value);
+        if (!name) {
+            alert('コレクション名を入力してください');
+            return;
+        }
+        if (!this.collections) this.collections = { collections: [] };
+        if (!this.collections.collections) this.collections.collections = [];
+        this.collections.collections.push({ name, description, tags });
+        this.saveData();
+        this.notify('コレクション', '追加', name, `説明: ${description}\n紐づけるタグ: ${tags.join(', ')}`);
+        this.renderCollectionManager();
+    }
+
+    removeCollection(idx) {
+        if (!confirm('このコレクションを削除しますか？')) return;
+        if (this.collections && this.collections.collections) {
+            const removed = this.collections.collections[idx];
+            this.collections.collections.splice(idx, 1);
+            this.saveData();
+            this.notify('コレクション', '削除', typeof removed === 'string' ? removed : (removed.name || ''));
+        }
+        this.renderCollectionManager();
+    }
+
+    exportJson(type) {
+        let data, filename, label;
+        if (type === 'brands') { data = this.brands; filename = 'brands.json'; label = 'ブランド'; }
+        else if (type === 'tags') { data = this.tags; filename = 'tags.json'; label = 'タグ'; }
+        else if (type === 'collections') { data = this.collections; filename = 'collections.json'; label = 'コレクション'; }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.notify(label, 'JSONダウンロード', filename, `${filename} がダウンロードされました。Google Drive の「_全員/提出用」フォルダへ配置してください。`);
+    }
+
+    escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+}

@@ -1,0 +1,1768 @@
+/**
+ * =============================================================================
+ * custom.css
+ * =============================================================================
+ * 作成日: 2026-06-27
+ * 作成者: s.tamaki (Devin)
+ * 目的:
+ *   参考サイト（https://panio2014.com/）に近づけるための
+ *   サイト全体に適用されるベースカスタムCSS。
+ *   背景色、テキスト色、フォント、角丸リセット、グリッド罫線等を統一。
+ *
+ * 変更履歴:
+ *   2026-06-27 - 初回作成。背景色#F5F5F5、テキスト色#333333、
+ *                Helveticaフォント、角丸リセット、1pxグリッド罫線を設定。
+ * =============================================================================
+ */
+
+/* ── 全体ベース ── */
+html,
+body {
+  background-color: #F5F5F5;
+  color: #333333;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 角丸リセット ── */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* ── ボタン角丸のみ部分解除が必要な場合は別途上書き ── */
+button,
+.button,
+.btn,
+.shopify-payment-button__button {
+  border-radius: 0 !important;
+}
+
+/* ── 入力フォーム角丸リセット ── */
+input,
+textarea,
+select {
+  border-radius: 0 !important;
+}
+
+/* ── 画像・メディア角丸リセット ── */
+img,
+.media,
+.card__media,
+.product__media {
+  border-radius: 0 !important;
+}
+
+/* ── 1pxグリッド罫線（商品カード等に適用） ── */
+.c-grid-border .card,
+.c-grid-border .product-card-wrapper,
+.c-grid-border .collection-list__item {
+  border: 1px solid rgba(51, 51, 51, 0.15);
+}
+
+/* ── リンク色統一 ── */
+a {
+  color: #333333;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #000000;
+}
+
+/* ── 見出しフォント統一 ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333333;
+  font-weight: 700;
+}
+
+/* ── パンくず・小文字 ── */
+.breadcrumbs,
+.caption {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333333;
+}
+
+/* ── セクション余白調整 ── */
+.shopify-section {
+  background-color: #F5F5F5;
+}
+
+/* ── 全幅・端までぴったり（panio風） ── */
+.shopify-section:has(.c-image-asymmetry),
+.shopify-section:has(.banner),
+.shopify-section:has(.c-brand-list) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.shopify-section:has(.c-image-asymmetry) .page-width,
+.shopify-section:has(.banner) .page-width,
+.shopify-section:has(.c-brand-list) .page-width {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* カスタムセクション：左右余白ゼロ */
+.c-image-asymmetry-wrapper {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.c-image-asymmetry {
+  gap: 0 !important;
+  width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+}
+
+.c-image-asymmetry__media img,
+.c-image-asymmetry__media svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* バナーも端まで */
+.banner {
+  width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+}
+
+.banner__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+/* ── 特集コレクション：グリッドを端まで ── */
+.shopify-section:has(.c-featured-collection) .page-width,
+.shopify-section:has(.c-featured-collection) .page-width-desktop {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.c-featured-collection .grid {
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+}
+
+.c-featured-collection .grid__item {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ── ドロワー・モーダル背景 ── */
+.drawer,
+.modal {
+  background-color: #F5F5F5;
+}
+
+/* ── 商品カード：枠線削除・角丸リセット・フォント調整 ── */
+.card {
+  border: none !important;
+}
+
+/* ホバー時：上部は固定、下部・左右に拡大して隣と重なる */
+.card-wrapper,
+.card__media,
+.media--transparent {
+  overflow: visible !important;
+}
+
+.card-wrapper {
+  position: relative;
+}
+
+.card__media img,
+.card-wrapper img {
+  transition: transform 0.4s ease;
+}
+
+.card-wrapper:hover img,
+.card-wrapper:hover .media--transparent img {
+  transform: scale(1.06);
+  transform-origin: top center; /* 上は突き抜けない、下と左右に拡大 */
+}
+
+/* グリッドアイテムも overflow: visible に */
+.c-featured-collection .grid__item,
+.c-main-collection-product-grid .grid__item,
+.c-related-products .grid__item {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* ホバー時に最前面へ */
+.card-wrapper:hover {
+  z-index: 100;
+}
+
+.card-wrapper:hover img {
+  z-index: 101;
+}
+
+.card__media,
+.card__inner,
+.card__content,
+.card__information,
+.card-wrapper .card {
+  border-radius: 0 !important;
+}
+
+.card__heading {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  color: #333333 !important;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.02rem;
+}
+
+.card__heading a {
+  color: #333333 !important;
+}
+
+.price {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  color: #333333 !important;
+  font-size: 1.3rem;
+}
+
+.price-item {
+  color: #333333 !important;
+}
+
+.card__badge .badge {
+  border-radius: 0 !important;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+/* ── 商品ページ：panio風 2列グリッド画像ギャラリー ── */
+
+/* フルワイドコンテナ */
+.c-product-fullwidth {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  --grid-desktop-horizontal-spacing: 0px;
+  --grid-desktop-vertical-spacing: 0px;
+  --grid-mobile-horizontal-spacing: 0px;
+  --grid-mobile-vertical-spacing: 0px;
+}
+
+.c-product-fullwidth .product.grid {
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+  gap: 0 !important;
+}
+
+@media screen and (min-width: 750px) {
+  .c-product-fullwidth .product__media-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 65% !important;
+    max-width: 65% !important;
+  }
+
+  .c-product-fullwidth .product__info-wrapper {
+    padding: 0 3rem 0 4rem !important;
+    width: 35% !important;
+    max-width: 35% !important;
+  }
+
+  .c-product-fullwidth .product__media-list,
+  .c-product-fullwidth slider-component {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .c-product-fullwidth .product__media-item,
+  .c-product-fullwidth .product__media-item:first-child,
+  .c-product-fullwidth .product__media-item--full,
+  .c-product-fullwidth .product--stacked .product__media-item {
+    width: 50% !important;
+    max-width: 50% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 50% !important;
+    border: none !important;
+    outline: none !important;
+  }
+}
+
+.c-product-fullwidth .slider__slide {
+  padding: 0 !important;
+  margin: 0 !important;
+  scroll-margin: 0 !important;
+}
+
+.c-product-fullwidth .product-media-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.c-product-fullwidth .product-media-container.constrain-height {
+  --constrained-height: none !important;
+  --constrained-min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.c-product-fullwidth .product-media-container.constrain-height.media-fit-contain {
+  width: 100% !important;
+}
+
+.c-product-fullwidth .product-media-container .product__modal-opener {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.c-product-fullwidth .product__media-wrapper .media {
+  border-radius: 0 !important;
+  overflow: hidden;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  position: relative !important;
+  height: auto !important;
+}
+
+.c-product-fullwidth .product__media-wrapper .media > * {
+  border-radius: 0 !important;
+}
+
+.c-product-fullwidth .product__media-wrapper .media img {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  aspect-ratio: 3 / 4;
+  position: relative !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.c-product-fullwidth .global-media-settings {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.c-product-fullwidth .grid--peek .slider__slide {
+  --grid-desktop-horizontal-spacing: 0px !important;
+  scroll-padding-left: 0 !important;
+}
+
+.c-product-fullwidth .product__media-list.grid--peek {
+  padding: 0 !important;
+  column-gap: 0 !important;
+}
+
+@media screen and (max-width: 749px) {
+  .c-product-fullwidth .product__media-list {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .c-product-fullwidth .product__media-list .product__media-item {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    scroll-snap-align: start !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .c-product-fullwidth .product__info-wrapper {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+/* 関連商品セクションの画像間隙間を0に */
+.related-products .grid.product-grid {
+  --grid-desktop-horizontal-spacing: 0px;
+  --grid-desktop-vertical-spacing: 0px;
+  --grid-mobile-horizontal-spacing: 0px;
+  --grid-mobile-vertical-spacing: 0px;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+}
+
+.related-products .grid__item {
+  padding: 0 !important;
+}
+
+/* ── c-card：panio風商品カード ── */
+.c-card {
+  display: block;
+}
+
+.c-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.c-card__image-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: #f5f5f5;
+}
+
+.c-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+
+.c-card__image--secondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+.c-card__link:hover .c-card__image--secondary {
+  opacity: 1;
+}
+
+.c-card__link:hover .c-card__image:not(.c-card__image--secondary) {
+  opacity: 0;
+}
+
+.c-card__badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: #333333;
+  padding: 0.3rem 0.6rem;
+}
+
+.c-card__info {
+  padding: 0.8rem 0.8rem 0 0.8rem;
+}
+
+.c-card__vendor {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #888888;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.2rem 0;
+}
+
+.c-card__title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #333333;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.4rem 0;
+  line-height: 1.4;
+}
+
+.c-card__price {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  color: #333333;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.c-card__price--compare {
+  color: #999999;
+  margin-right: 0.5rem;
+  text-decoration: line-through;
+}
+
+.c-card__price--sale {
+  color: #333333;
+}
+
+/* ── 商品ページ：panio風スタイル調整 ── */
+.product__info-container .product__title h1,
+.product__info-container .product__title h2 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 2.2rem;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.product__info-container .caption-with-letter-spacing {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  color: #444444;
+}
+
+.product__info-container .price--large .price-item {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.product__tax-inline {
+  display: inline;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #666666;
+  letter-spacing: 0.04em;
+  margin-left: 0.8rem;
+  vertical-align: middle;
+}
+
+/* ── アコーディオン（商品説明・素材・ブランド情報） ── */
+.product__info-container .c-accordion {
+  border-top: 1px solid #e0e0e0;
+}
+
+.product__info-container .c-accordion:last-of-type {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.c-accordion__details {
+  width: 100%;
+}
+
+.c-accordion__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.4rem 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.c-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-accordion__title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #333333;
+}
+
+.c-accordion__icon {
+  position: relative;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex-shrink: 0;
+}
+
+.c-accordion__icon::before,
+.c-accordion__icon::after {
+  content: '';
+  position: absolute;
+  background: #333333;
+  border-radius: 1px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.c-accordion__icon::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.c-accordion__icon::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.c-accordion__details[open] .c-accordion__icon::after {
+  transform: translateX(-50%) rotate(90deg);
+  opacity: 0;
+}
+
+.c-accordion__content {
+  padding: 0 0 1.6rem 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: #333333;
+}
+
+.product__info-container .product__description {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: #333333;
+}
+
+.product__info-container .product-form__submit {
+  background: #333333;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 1.4rem 3rem;
+  transition: background 0.2s ease;
+}
+
+.product__info-container .product-form__submit:hover {
+  background: #000000;
+}
+
+.product__info-container .product-form__submit[disabled] {
+  background: #cccccc;
+  color: #666666;
+}
+
+.product__info-container .shopify-payment-button__button {
+  border-radius: 0 !important;
+}
+
+/* バリアントボタン: panio風 */
+.product__info-container .product-form__input--swatch label,
+.product__info-container .product-form__input--pill label {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  border-radius: 0;
+}
+
+/* ── Size Guide モーダル ── */
+.c-size-guide-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.c-size-guide-modal.is-active {
+  display: flex;
+}
+
+.c-size-guide-modal__content {
+  background: #F5F5F5;
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 2.4rem;
+  position: relative;
+}
+
+.c-size-guide-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #333333;
+}
+
+.c-size-guide-link {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  color: #333333;
+  text-decoration: underline;
+  margin-top: 0.8rem;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   Panio風バナー＋ナビ
+   ============================================================================= */
+
+.c-panio-banner {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.c-panio-banner__media-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.c-panio-banner__media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── 横並びナビゲーション ── */
+.c-panio-banner {
+  position: relative;
+}
+
+.c-panio-banner__nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  background: transparent;
+  border: none;
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+  padding: 0 2.4rem;
+}
+
+/* ── スクロール時：白背景・固定 ── */
+.c-panio-banner__nav.is-scrolled {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(51, 51, 51, 0.08);
+}
+
+
+/* ── 画像なし時：高さ0・ナビはfixed浮かせ・黒文字 ── */
+.c-panio-banner--no-image {
+  height: 0;
+  min-height: 0;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+}
+
+.c-panio-banner__nav--no-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  box-shadow: none;
+  color: #333333;
+  z-index: 100;
+}
+
+.c-panio-banner__nav--no-image .c-panio-banner__nav-title,
+.c-panio-banner__nav--no-image .c-panio-banner__icon,
+.c-panio-banner__nav--no-image .c-panio-banner__hamburger,
+.c-panio-banner__nav--no-image .c-panio-banner__logo-text {
+  color: #333333;
+}
+
+.c-panio-banner__nav--no-image .c-panio-banner__cart-count {
+  background: #333333;
+  color: #ffffff;
+}
+
+/* ── ホバー時：白背景 ── */
+.c-panio-banner__nav:hover {
+  background: #ffffff;
+}
+
+/* ── ロゴ ── */
+.c-panio-banner__nav-logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.c-panio-banner__logo-img {
+  display: block;
+  height: auto;
+  max-height: 3.2rem;
+  width: auto;
+}
+
+.c-panio-banner__logo-text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  transition: color 0.3s ease;
+}
+
+.c-panio-banner__nav:hover .c-panio-banner__logo-text,
+.c-panio-banner__nav.is-scrolled .c-panio-banner__logo-text {
+  color: #333333;
+}
+
+/* ── ナビ項目（中央） ── */
+.c-panio-banner__nav-items {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex: 1 1 auto;
+}
+
+.c-panio-banner__nav-group {
+  position: relative;
+}
+
+.c-panio-banner__nav-title {
+  display: block;
+  padding: 1.6rem 2rem;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  transition: color 0.3s ease, background 0.2s ease;
+}
+
+/* ホバー・スクロール時：黒文字 */
+.c-panio-banner__nav:hover .c-panio-banner__nav-title,
+.c-panio-banner__nav.is-scrolled .c-panio-banner__nav-title {
+  color: #333333;
+}
+
+.c-panio-banner__nav-title:hover {
+  background: rgba(51, 51, 51, 0.04);
+}
+
+/* ── アイコン（右側） ── */
+.c-panio-banner__nav-icons {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.c-panio-banner__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.c-panio-banner__nav:hover .c-panio-banner__icon,
+.c-panio-banner__nav.is-scrolled .c-panio-banner__icon {
+  color: #333333;
+}
+
+.c-panio-banner__icon:hover {
+  opacity: 0.7;
+}
+
+.c-panio-banner__cart-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  background: #333333;
+  color: #ffffff;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  padding: 0 4px;
+}
+
+.c-panio-banner__nav:hover .c-panio-banner__cart-count,
+.c-panio-banner__nav.is-scrolled .c-panio-banner__cart-count {
+  background: #333333;
+  color: #ffffff;
+}
+
+/* ── 小見出しドロップダウン ── */
+.c-panio-banner__submenu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  background: #ffffff;
+  border: 1px solid rgba(51, 51, 51, 0.1);
+  padding: 0.8rem 0;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  z-index: 200;
+}
+
+.c-panio-banner__nav-group:hover .c-panio-banner__submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.c-panio-banner__subitem {
+  display: block;
+  padding: 0.7rem 1.8rem;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #333333;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.c-panio-banner__subitem:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+/* ── モバイル左側（ハンバーガー + 検索） ── */
+.c-panio-banner__mobile-left {
+  display: none;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.c-panio-banner__hamburger {
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.c-panio-banner__nav:hover .c-panio-banner__hamburger,
+.c-panio-banner__nav.is-scrolled .c-panio-banner__hamburger {
+  color: #333333;
+}
+
+/* ── デスクトップ時：モバイル検索非表示、デスクトップ検索表示 ── */
+.c-panio-banner__icon--mobile-search {
+  display: none;
+}
+.c-panio-banner__icon--desktop-search {
+  display: flex;
+}
+
+/* ── ドロワー ── */
+.c-panio-banner__drawer {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  max-width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 10000;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+}
+
+.c-panio-banner__drawer.is-open {
+  left: 0;
+}
+
+.c-panio-banner__drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.c-panio-banner__drawer-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.c-panio-banner__drawer-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+
+.c-panio-banner__drawer-close {
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: #333333;
+}
+
+.c-panio-banner__drawer-group {
+  margin-bottom: 1.6rem;
+}
+
+.c-panio-banner__drawer-title {
+  display: block;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333333;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  padding: 0.6rem 0;
+}
+
+.c-panio-banner__drawer-sub {
+  padding-left: 1.2rem;
+  margin-top: 0.4rem;
+}
+
+.c-panio-banner__drawer-sub a {
+  display: block;
+  font-size: 1.2rem;
+  color: #666666;
+  text-decoration: none;
+  padding: 0.4rem 0;
+  transition: opacity 0.2s ease;
+}
+
+.c-panio-banner__drawer-sub a:hover {
+  opacity: 0.6;
+}
+
+/* ── モバイル ── */
+@media screen and (max-width: 749px) {
+  .c-panio-banner__mobile-left {
+    display: flex;
+  }
+
+  .c-panio-banner__icon--mobile-search {
+    display: flex;
+    transition: color 0.3s ease;
+  }
+
+  .c-panio-banner__nav {
+    padding: 0 1.6rem;
+  }
+
+  .c-panio-banner__nav-items {
+    display: none;
+  }
+
+  .c-panio-banner__nav-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .c-panio-banner__nav-icons {
+    margin-left: auto;
+    gap: 1.2rem;
+  }
+
+  .c-panio-banner__icon--desktop-search {
+    display: none;
+  }
+
+  .c-panio-banner__logo-text {
+    font-size: 1.6rem;
+  }
+}
+
+/* =============================================================================
+ * Marquee (流れるテキスト)
+ * ============================================================================= */
+.marquee-section {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee__wrapper {
+  display: flex;
+  gap: var(--marquee-gap, 16px);
+  width: fit-content;
+  animation: marquee-scroll var(--marquee-speed, 36s) linear infinite;
+  animation-direction: var(--marquee-direction, normal);
+}
+
+.marquee__content {
+  display: flex;
+  gap: var(--marquee-gap, 16px);
+  flex-shrink: 0;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee__text {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.marquee__text p {
+  margin: 0;
+}
+
+/* =============================================================================
+ * コレクションページ：panio風スタイル
+ * ============================================================================= */
+
+/* 全ページ：固定ヘッダー分の上余白 */
+#MainContent {
+  padding-top: 5.6rem;
+}
+
+/* コレクションページ：左詰め・フルwidth */
+#MainContent .collection.page-width,
+#MainContent .facets-vertical.page-width {
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* フィルターのpage-widthはmax-widthとmarginのみ上書き（padding-leftはスキーマ設定に委ねる） */
+#MainContent .facets-wrapper.page-width {
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* バナーのpage-widthはmax-widthとmarginのみ上書き（padding-leftはスキーマ設定に委ねる） */
+#MainContent .collection-hero__inner.page-width {
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+
+.main-collection-banner h1 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #333333;
+  margin: 0;
+}
+
+/* コレクション説明非表示 */
+.main-collection-banner .collection-description {
+  display: none;
+}
+
+/* グリッド：横0・縦16px（panio風） */
+.collection .product-grid {
+  --grid-desktop-horizontal-spacing: 0px;
+  --grid-desktop-vertical-spacing: 0px;
+  --grid-mobile-horizontal-spacing: 0px;
+  --grid-mobile-vertical-spacing: 0px;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 1.6rem !important;
+}
+
+.collection .product-grid .grid__item {
+  padding: 0 !important;
+}
+
+/* verticalフィルターのサイドバー幅 */
+.facets-vertical {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.facets-vertical .facets-wrapper {
+  width: 22rem;
+  min-width: 18rem;
+  flex-shrink: 0;
+  border-right: 1px solid #e0e0e0;
+  padding-right: 2rem;
+  padding-top: 0;
+}
+
+.facets-vertical .product-grid-container {
+  flex: 1;
+  min-width: 0;
+}
+
+/* フィルター見出し */
+.facets-wrapper .facets__heading,
+.facets-wrapper .facet-filters__label {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #333333;
+  text-transform: uppercase;
+}
+
+/* フィルター各項目 */
+.facet-checkbox__text,
+.facets__list .facet-checkbox label {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  color: #333333;
+  letter-spacing: 0.02em;
+}
+
+/* ソートドロップダウン */
+.facet-filters__sort.select__select {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  border: none;
+  border-bottom: 1px solid #333333;
+  border-radius: 0;
+  padding: 0.4rem 2rem 0.4rem 0;
+  color: #333333;
+  background: transparent;
+}
+
+/* 件数テキスト */
+.product-count__text,
+.product-count-vertical .product-count__text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #888888;
+  letter-spacing: 0.04em;
+}
+
+/* ページネーション */
+.pagination .pagination__list {
+  gap: 0.4rem;
+}
+
+.pagination__item a,
+.pagination__item span {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  color: #333333;
+  border: none;
+  letter-spacing: 0.04em;
+}
+
+/* =============================================================================
+ * カートページ：panio風スタイル
+ * ============================================================================= */
+
+/* タイトル */
+cart-items .title--primary {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #333333;
+  text-transform: uppercase;
+}
+
+/* ショッピングを続けるリンク */
+cart-items .underlined-link {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  color: #333333;
+  letter-spacing: 0.04em;
+}
+
+/* テーブルヘッダー */
+.cart-items th {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #888888;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* 商品名 */
+.cart-item__name {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #333333;
+  letter-spacing: 0.02em;
+}
+
+/* ベンダー名 */
+cart-items .caption-with-letter-spacing {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #888888;
+  letter-spacing: 0.04em;
+}
+
+/* 価格 */
+.cart-item__price-wrapper,
+.cart-item__totals .price {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  color: #333333;
+  letter-spacing: 0.02em;
+}
+
+/* 数量入力 */
+.quantity__input {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  color: #333333;
+  border: 1px solid #e5e5e5;
+}
+
+/* 削除ボタン */
+.cart-item__remove .button {
+  color: #888888;
+}
+
+/* フッター：小計 */
+.totals__total {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #333333;
+}
+
+.totals__total-value {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #333333;
+  letter-spacing: 0.02em;
+}
+
+/* チェックアウトボタン */
+.cart__checkout-button {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #333333;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  min-height: 4.8rem;
+  width: 100%;
+}
+
+.cart__checkout-button:hover {
+  background: #000000;
+}
+
+/* カートフッター：中央配置・文字左寄せ（空カート時は非表示） */
+#main-cart-footer:not(.is-empty) .cart__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#main-cart-footer:not(.is-empty) .cart__footer > div:only-child {
+  margin-left: 0;
+}
+
+#main-cart-footer:not(.is-empty) .cart__blocks,
+#main-cart-footer:not(.is-empty) .cart__ctas,
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons {
+  width: 100%;
+  max-width: 32rem;
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#main-cart-footer:not(.is-empty) .cart__blocks > * + * {
+  margin-top: 2rem;
+}
+
+/* 合計・税注釈を左寄せ */
+#main-cart-footer:not(.is-empty) .totals {
+  justify-content: flex-start !important;
+  gap: 1.2rem;
+}
+
+#main-cart-footer:not(.is-empty) .tax-note {
+  text-align: left !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  display: block !important;
+}
+
+#main-cart-footer:not(.is-empty) .totals__total,
+#main-cart-footer:not(.is-empty) .totals__total-value {
+  text-align: left !important;
+}
+
+/* 動的チェックアウトボタンの幅を揃える */
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons {
+  margin: 0 !important;
+}
+
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons .dynamic-checkout__content,
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons .wallet-cart-grid,
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons shopify-accelerated-checkout-cart,
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons shopify-paypal-button {
+  width: 100% !important;
+  display: block !important;
+}
+
+#main-cart-footer:not(.is-empty) .cart__dynamic-checkout-buttons .wallet-cart-grid {
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+/* デスクトップでcomponent-cart.cssの上書きを打ち消し */
+@media screen and (min-width: 990px) {
+  #main-cart-footer:not(.is-empty) .cart__footer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #main-cart-footer:not(.is-empty) .cart__footer > * {
+    width: 100% !important;
+    max-width: 32rem !important;
+  }
+
+  #main-cart-footer:not(.is-empty) .cart__footer > * + * {
+    margin-left: 0 !important;
+    margin-top: 2rem !important;
+  }
+}
+
+/* 空カート */
+.cart__empty-text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #333333;
+  letter-spacing: 0.02em;
+}
+
+/* =============================================================================
+ * 商品説明テーブル（採寸表）
+ * ============================================================================= */
+.rte-table-wrapper table {
+  border-collapse: collapse;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+.rte-table-wrapper table tr {
+  border-bottom: 1px solid #000;
+}
+
+.rte-table-wrapper table tr:last-child {
+  border-bottom: none;
+}
+
+.rte-table-wrapper table td {
+  border: none;
+  padding: 6px 12px;
+}
+
+@media screen and (max-width: 749px) {
+  .rte-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  .rte-table-wrapper table {
+    width: auto !important;
+    min-width: 100%;
+  }
+
+  .rte-table-wrapper td,
+  .rte-table-wrapper th {
+    white-space: nowrap;
+  }
+}
+
+/* =============================================================================
+   c-contact（カスタム コンタクトフォーム）
+   panio 風ミニマルデザイン
+   作成日: 2026-07-11
+   ============================================================================= */
+
+.c-contact {
+  background-color: rgb(var(--color-background));
+}
+
+.c-contact__inner {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── ヘッダー ── */
+.c-contact__header {
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.c-contact__header .c-contact__label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(var(--color-foreground), 0.5);
+  margin: 0 0 0.75rem;
+}
+
+.c-contact__header .c-contact__heading {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin: 0 0 1.5rem;
+  line-height: 1.3;
+}
+
+.c-contact__description {
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: rgba(var(--color-foreground), 0.65);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ── フォーム全体 ── */
+.c-contact__form {
+  width: 100%;
+}
+
+/* ── 2カラム行 ── */
+.c-contact__row--2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 2.5rem;
+}
+
+@media screen and (max-width: 749px) {
+  .c-contact__row--2col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+/* ── フィールド共通 ── */
+.c-contact__field {
+  position: relative;
+  margin-bottom: 2.5rem;
+}
+
+/* ── インプット ── */
+.c-contact__input,
+.c-contact__textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(var(--color-foreground), 0.25);
+  border-radius: 0;
+  padding: 0.75rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: rgb(var(--color-foreground));
+  outline: none;
+  transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  box-shadow: none;
+}
+
+.c-contact__input:focus,
+.c-contact__textarea:focus {
+  border-bottom-color: rgb(var(--color-foreground));
+}
+
+.c-contact__input--error {
+  border-bottom-color: #cc0000;
+}
+
+/* ── テキストエリア ── */
+.c-contact__field--textarea {
+  margin-bottom: 3rem;
+}
+
+.c-contact__textarea {
+  resize: none;
+  display: block;
+  line-height: 1.7;
+  border: none;
+  border-bottom: 1px solid rgba(var(--color-foreground), 0.25);
+  padding-top: 1.5rem;
+}
+
+/* ── フローティングラベル ── */
+.c-contact__label-field {
+  position: absolute;
+  top: 0.75rem;
+  left: 0;
+  font-size: 0.875rem;
+  color: rgba(var(--color-foreground), 0.5);
+  pointer-events: none;
+  transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+  letter-spacing: 0.03em;
+}
+
+.c-contact__input:focus + .c-contact__label-field,
+.c-contact__input:not(:placeholder-shown) + .c-contact__label-field,
+.c-contact__textarea:focus + .c-contact__label-field,
+.c-contact__textarea:not(:placeholder-shown) + .c-contact__label-field {
+  top: -0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: rgba(var(--color-foreground), 0.4);
+}
+
+/* ── エラー ── */
+.c-contact__field-error {
+  display: block;
+  font-size: 0.75rem;
+  color: #cc0000;
+  margin-top: 0.35rem;
+}
+
+/* ── 成功・エラーメッセージ ── */
+.c-contact__success {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid currentColor;
+  margin-bottom: 2rem;
+  font-size: 0.9375rem;
+}
+
+.c-contact__error {
+  padding: 1rem 1.5rem;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.c-contact__error ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+/* ── プライバシーポリシー ── */
+.c-contact__privacy {
+  font-size: 0.8125rem;
+  color: rgba(var(--color-foreground), 0.55);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.c-contact__privacy a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ── 送信ボタン ── */
+.c-contact__submit {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.c-contact__button {
+  display: inline-block;
+  min-width: 200px;
+  padding: 1rem 3rem;
+  background-color: rgb(var(--color-foreground));
+  color: rgb(var(--color-background));
+  font-size: 0.8125rem;
+  font-family: inherit;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid rgb(var(--color-foreground));
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.c-contact__button:hover {
+  background-color: transparent;
+  color: rgb(var(--color-foreground));
+}
+
+@media screen and (max-width: 749px) {
+  .c-contact__header {
+    margin-bottom: 2.5rem;
+  }
+
+  .c-contact__field {
+    margin-bottom: 2rem;
+  }
+
+  .c-contact__field--textarea {
+    margin-bottom: 2rem;
+  }
+
+  .c-contact__button {
+    min-width: 160px;
+    width: 100%;
+    padding: 1rem 2rem;
+  }
+}
+

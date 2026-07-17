@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullgram Shopify Product Listing</title>
+    <title>fullgram Portal Site</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="loginScreen" class="login-screen">
         <div class="login-box">
             <div class="login-icon">FG</div>
-            <h2>Fullgram Shopify Product Listing</h2>
+            <h2>fullgram Portal Site</h2>
             <p class="login-subtitle">パスワードを入力してアクセスしてください</p>
             <div class="login-form">
                 <input type="password" id="loginPassword" placeholder="パスワード">
@@ -23,11 +23,56 @@
     <div id="appContainer" class="app-container" style="display:none;">
     <div class="container">
         <header>
-            <h1>Fullgram Shopify Product Listing</h1>
-            <p class="subtitle">Shopify登録商品用のCSVを生成します</p>
+            <h1>fullgram Portal Site</h1>
+            <p class="subtitle">Shopify商品管理・ポリシー確認ポータル</p>
         </header>
 
-        <main>
+        <main id="topPage">
+            <h2>メニュー</h2>
+            <p class="subtitle">管理メニュー</p>
+            <div class="top-menu-grid">
+                <div class="top-menu-card" data-target="csv">
+                    <div class="top-menu-icon">CSV</div>
+                    <h3>商品CSV作成</h3>
+                    <p>Shopify登録用の商品CSVを作成します</p>
+                </div>
+                <div class="top-menu-card" data-target="task">
+                    <div class="top-menu-icon">TASK</div>
+                    <h3>タスク</h3>
+                    <p>ポリシー・法的情報などの確認・承認タスク</p>
+                </div>
+            </div>
+        </main>
+
+        <main id="taskMenu" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="taskBackBtn" class="btn btn-secondary">← トップページへ戻る</button>
+            </div>
+            <h2>タスク一覧</h2>
+            <p class="subtitle">今後、タスクの種類が増えていく予定です</p>
+            <div class="top-menu-grid">
+                <div class="top-menu-card" data-target="policy">
+                    <div class="top-menu-icon">POLICY</div>
+                    <h3>ポリシー・法的情報管理</h3>
+                    <p>返品・返金、利用規約、配送、連絡先、特定商取引法</p>
+                </div>
+                <div class="top-menu-card" data-target="skuRule">
+                    <div class="top-menu-icon">SKU</div>
+                    <h3>SKUルール作成</h3>
+                    <p>SKUルールの確認と追加・訂正依頼</p>
+                </div>
+                <div class="top-menu-card" data-target="dataMenu">
+                    <div class="top-menu-icon">DATA</div>
+                    <h3>データ登録</h3>
+                    <p>ブランド、タグ、コレクションの管理</p>
+                </div>
+            </div>
+        </main>
+
+        <main id="csvMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="csvBackBtn" class="btn btn-secondary">← トップページへ戻る</button>
+            </div>
             <div class="toolbar">
                 <input type="text" id="exportFilename" placeholder="products_export_YYYY-MM-DD.csv" style="width: 220px; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 6px 10px; font-size: 13px;">
                 <button id="exportCsv" class="btn btn-success">CSV出力</button>
@@ -44,6 +89,149 @@
             <div id="productsList" class="products-list">
                 <!-- 商品カードがここに追加されます -->
             </div>
+        </main>
+
+        <!-- ポリシー・法的情報管理画面 -->
+        <main id="policyMain" style="display:none;">
+            <div id="policyTaskList" class="policy-section">
+                <h2>ポリシー・法的情報管理</h2>
+                <p class="subtitle">クライアント確認・承認が必要な項目を管理します</p>
+                <div id="policyTaskCards" class="policy-task-list"></div>
+            </div>
+
+            <div id="policyEditor" class="policy-section" style="display:none;">
+                <div class="policy-editor-header">
+                    <button id="policyBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
+                    <h2 id="policyEditorTitle"></h2>
+                </div>
+                <div class="policy-editor-grid">
+                    <div class="policy-form-column">
+                        <h3>入力欄</h3>
+                        <p class="policy-help-text">各項目の内容を入力してください。ヘルプテキストに従って、実際の運営方針に合わせて値を設定してください。</p>
+                        <div id="policyFormContainer"></div>
+                    </div>
+                    <div class="policy-preview-column">
+                        <h3>プレビュー</h3>
+                        <div id="policyPreview" class="policy-preview-box"></div>
+                    </div>
+                </div>
+                <div class="policy-actions">
+                    <button id="policySaveDraftBtn" class="btn btn-secondary">下書き保存</button>
+                    <button id="policyApproveBtn" class="btn btn-success">承認してHTMLを生成</button>
+                </div>
+                <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                    <p><strong>承認について：</strong>「承認してHTMLを生成」を押すと、現在の内容でHTMLファイルが生成されダウンロードされます。ダウンロードしたファイルは Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。承認済みの項目は一覧にチェックマークが表示されます。再度編集する場合は、新しいHTMLファイルとして保存されます。古いファイルは削除する必要はありません。</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- データ登録メニュー -->
+        <main id="dataMenu" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="dataMenuBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
+            </div>
+            <h2>データ登録</h2>
+            <p class="subtitle">ブランド、タグ、コレクションを管理します</p>
+            <div class="top-menu-grid">
+                <div class="top-menu-card" data-target="brand">
+                    <div class="top-menu-icon">BRAND</div>
+                    <h3>ブランド管理</h3>
+                    <p>ブランド名、読み、SKU用3文字を登録</p>
+                </div>
+                <div class="top-menu-card" data-target="tag">
+                    <div class="top-menu-icon">TAG</div>
+                    <h3>タグ管理</h3>
+                    <p>タグ名と説明を登録</p>
+                </div>
+                <div class="top-menu-card" data-target="collection">
+                    <div class="top-menu-icon">COLL</div>
+                    <h3>コレクション管理</h3>
+                    <p>コレクション名、紐づけるタグ、説明を登録</p>
+                </div>
+                <div class="top-menu-card" data-target="notification">
+                    <div class="top-menu-icon">MAIL</div>
+                    <h3>通知設定</h3>
+                    <p>データ登録時のメール通知設定</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- 通知設定画面 -->
+        <main id="notificationMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="notificationBackBtn" class="btn btn-secondary">← データ登録メニューへ戻る</button>
+            </div>
+            <h2>通知設定</h2>
+            <p class="subtitle">データ登録時のメール通知設定を行います</p>
+            <div class="data-manager">
+                <div class="data-form">
+                    <h3>Google Apps Script 連携</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Google Apps Script URL</label>
+                            <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+                            <p class="policy-field-help">setup.md の手順で取得した Web App URL を入力してください。</p>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>通知先メールアドレス</label>
+                            <input type="email" id="gasToEmailInput" value="tamagon123@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label>連携トークン</label>
+                            <input type="text" id="gasTokenInput" value="fullgram-portal-token-2026">
+                        </div>
+                    </div>
+                    <div class="data-actions">
+                        <button id="gasSaveBtn" class="btn btn-primary">保存</button>
+                        <button id="gasTestBtn" class="btn btn-secondary">テスト通知を送信</button>
+                    </div>
+                </div>
+                <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
+                    <p><strong>セットアップ手順：</strong>この設定を行う前に、<code>google-apps-script/setup.md</code> の手順に従って Google Apps Script をデプロイしてください。デプロイ後に表示された Web App URL を上記に貼り付けて保存してください。</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- SKUルール作成画面 -->
+        <main id="skuRuleMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="skuRuleBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
+            </div>
+            <h2>SKUルール作成</h2>
+            <p class="subtitle">現在のSKUルールを確認し、追加項目や訂正箇所があれば入力してください</p>
+            <div id="skuRuleContainer"></div>
+        </main>
+
+        <!-- ブランド管理画面 -->
+        <main id="brandMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="brandBackBtn" class="btn btn-secondary">← データ登録メニューへ戻る</button>
+            </div>
+            <h2>ブランド管理</h2>
+            <p class="subtitle">ブランド名、読み、SKU用3文字を登録します</p>
+            <div id="brandManager"></div>
+        </main>
+
+        <!-- タグ管理画面 -->
+        <main id="tagMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="tagBackBtn" class="btn btn-secondary">← データ登録メニューへ戻る</button>
+            </div>
+            <h2>タグ管理</h2>
+            <p class="subtitle">タグ名と説明を登録します</p>
+            <div id="tagManager"></div>
+        </main>
+
+        <!-- コレクション管理画面 -->
+        <main id="collectionMain" style="display:none;">
+            <div class="page-back-header" style="margin-bottom: 16px;">
+                <button id="collectionBackBtn" class="btn btn-secondary">← データ登録メニューへ戻る</button>
+            </div>
+            <h2>コレクション管理</h2>
+            <p class="subtitle">コレクション名、紐づけるタグ、説明を登録します</p>
+            <div id="collectionManager"></div>
         </main>
 
         <!-- 商品編集モーダル -->
@@ -904,6 +1092,7 @@
             });
         })();
     </script>
+    <script src="policy-templates.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

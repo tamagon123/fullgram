@@ -1,0 +1,162 @@
+{{ 'section-marquee.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign direction = section.settings.direction
+  assign speed = section.settings.speed
+  assign gap = section.settings.gap
+  if direction == 'right'
+    assign anim_direction = 'reverse'
+  else
+    assign anim_direction = 'normal'
+  endif
+-%}
+
+<div class="color-{{ section.settings.color_scheme }} isolate">
+  <div class="marquee-section section-{{ section.id }}-padding" style="--marquee-gap: {{ gap }}px; --marquee-direction: {{ anim_direction }}; --marquee-speed: {{ speed }}s;">
+    <div class="marquee__wrapper">
+      <div class="marquee__content">
+        {% for i in (1..4) %}
+          <div class="marquee__text {{ section.settings.text_size }}">
+            <p>{{ section.settings.text | escape }}</p>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="marquee__content" aria-hidden="true">
+        {% for i in (1..4) %}
+          <div class="marquee__text {{ section.settings.text_size }}">
+            <p>{{ section.settings.text | escape }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "★ Marquee (流れるテキスト)",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "default": "Hello! this is Panio. We are a select shop in Nagoya. We have a good things!",
+      "label": "表示テキスト"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "options": [
+        {
+          "value": "h1",
+          "label": "H1"
+        },
+        {
+          "value": "h2",
+          "label": "H2"
+        },
+        {
+          "value": "h3",
+          "label": "H3"
+        },
+        {
+          "value": "h4",
+          "label": "H4"
+        },
+        {
+          "value": "body",
+          "label": "本文"
+        }
+      ],
+      "default": "h3",
+      "label": "文字サイズ"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "options": [
+        {
+          "value": "left",
+          "label": "左へ"
+        },
+        {
+          "value": "right",
+          "label": "右へ"
+        }
+      ],
+      "default": "left",
+      "label": "流れる方向"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 5,
+      "max": 100,
+      "step": 1,
+      "unit": "s",
+      "label": "アニメーション速度",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "テキスト間の間隔",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 20
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    }
+  ],
+  "presets": [
+    {
+      "name": "★ Marquee (流れるテキスト)"
+    }
+  ]
+}
+{% endschema %}

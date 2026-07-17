@@ -1,0 +1,1085 @@
+{% comment %}
+  =============================================================================
+  c_footer.liquid
+  =============================================================================
+  作成日: 2026-06-28
+  作成者: s.tamaki (Devin)
+
+  目的:
+    Panio風カスタムフッター。
+    縦並びリンク、横並びのテキスト/SNS/支払いアイコン/画像を
+    ブロック形式で自由に配置できるフッターセクション。
+  =============================================================================
+{% endcomment %}
+
+{{ 'component-list-payment.css' | asset_url | stylesheet_tag }}
+{{ 'component-list-social.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .c-footer {
+    background-color: {{ section.settings.background_color }};
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .c-footer {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .c-footer__inner {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+    padding-left: {{ section.settings.horizontal_padding }}px;
+    padding-right: {{ section.settings.horizontal_padding }}px;
+    box-sizing: border-box;
+  }
+
+  .c-footer__link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .c-footer__link-list li {
+    margin-bottom: 0.6rem;
+  }
+
+
+  .c-footer__top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 2.4rem;
+    font-size: {{ section.settings.link_font_size }}px;
+  }
+
+  .c-footer__link-list a {
+    color: rgb(var(--color-foreground));
+    text-decoration: none;
+    font-size: inherit;
+    font-family: var(--font-body-family);
+    transition: opacity 0.2s ease;
+  }
+
+  .c-footer__link-list a:hover {
+    opacity: 0.7;
+  }
+
+  .c-footer__block-heading {
+    font-family: var(--font-heading-family);
+    font-size: inherit;
+    font-weight: var(--font-heading-weight);
+    margin: 0 0 1.2rem;
+    color: rgb(var(--color-foreground));
+  }
+
+  .c-footer__bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-top: {{ section.settings.bottom_margin_top }}px;
+    padding-top: {{ section.settings.bottom_padding_top }}px;
+    {%- if section.settings.bottom_border -%}
+      border-top: 1px solid {{ section.settings.bottom_border_color }};
+    {%- endif -%}
+  }
+
+  .c-footer__bottom-block {
+    width: 100%;
+  }
+
+  .c-footer__bottom-block.align-left   { text-align: left;   }
+  .c-footer__bottom-block.align-center { text-align: center; }
+  .c-footer__bottom-block.align-right  { text-align: right;  }
+
+  .c-footer__bottom-block .list-payment {
+    justify-content: flex-start;
+    margin: 0;
+    padding: 0;
+  }
+  .c-footer__bottom-block.align-center .list-payment { justify-content: center; }
+  .c-footer__bottom-block.align-right  .list-payment { justify-content: flex-end;  }
+
+  .c-footer__bottom-block .list-social {
+    justify-content: flex-start;
+    margin: 0;
+  }
+  .c-footer__bottom-block.align-center .list-social { justify-content: center; }
+  .c-footer__bottom-block.align-right  .list-social { justify-content: flex-end;  }
+
+  .c-footer__bottom-block .list-social__link {
+    padding: 0.6rem;
+  }
+  .c-footer__bottom-block .list-social__item .icon {
+    height: 2.2rem;
+    width: 2.2rem;
+  }
+
+  .c-footer__link-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .c-footer__link-row li {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .c-footer__link-row a,
+  .c-footer__link-row span {
+    text-decoration: none;
+    font-family: var(--font-body-family);
+    transition: opacity 0.2s ease;
+  }
+
+  .c-footer__link-row a:hover {
+    opacity: 0.7;
+  }
+
+  .c-footer__link-row .separator {
+    opacity: 0.5;
+  }
+
+  .c-footer__bottom-block img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  {%- for block in section.blocks -%}
+    {%- assign block_font_size = block.settings.font_size | default: 0 -%}
+    {%- assign has_custom_color = block.settings.use_custom_font_color -%}
+
+    .c-footer__block--{{ block.id }} {
+      {%- if block_font_size > 0 -%}
+        font-size: {{ block_font_size }}px !important;
+      {%- endif -%}
+      {%- if has_custom_color -%}
+        color: {{ block.settings.font_color }} !important;
+      {%- endif -%}
+      {%- if block.settings.margin_left > 0 -%}
+        margin-left: {{ block.settings.margin_left }}px !important;
+      {%- endif -%}
+      {%- if block.settings.margin_right > 0 -%}
+        margin-right: {{ block.settings.margin_right }}px !important;
+      {%- endif -%}
+    }
+    {%- if block_font_size > 0 -%}
+      .c-footer__block--{{ block.id }} .c-footer__link-list a,
+      .c-footer__block--{{ block.id }} .c-footer__block-heading,
+      .c-footer__block--{{ block.id }} .c-footer__link-row a,
+      .c-footer__block--{{ block.id }} .c-footer__link-row span {
+        font-size: {{ block_font_size }}px !important;
+      }
+    {%- endif -%}
+    {%- if has_custom_color -%}
+      .c-footer__block--{{ block.id }} a,
+      .c-footer__block--{{ block.id }} .c-footer__link-list a,
+      .c-footer__block--{{ block.id }} .c-footer__block-heading,
+      .c-footer__block--{{ block.id }} .c-footer__link-row a,
+      .c-footer__block--{{ block.id }} .c-footer__link-row span,
+      .c-footer__block--{{ block.id }} .list-social__link {
+        color: {{ block.settings.font_color }} !important;
+      }
+    {%- endif -%}
+    {%- if block.type == 'social' and block.settings.icon_size > 0 -%}
+      .c-footer__block--{{ block.id }} .list-social__item .icon {
+        height: {{ block.settings.icon_size }}px !important;
+        width: {{ block.settings.icon_size }}px !important;
+      }
+    {%- endif -%}
+    {%- if block.type == 'link_list' and block.settings.item_gap -%}
+      .c-footer__block--{{ block.id }} .c-footer__link-list li {
+        margin-bottom: {{ block.settings.item_gap }}px !important;
+      }
+    {%- endif -%}
+    {%- if block.type == 'link_row' and block.settings.item_gap -%}
+      .c-footer__block--{{ block.id }} .c-footer__link-row .separator {
+        margin: 0 {{ block.settings.item_gap }}px !important;
+      }
+    {%- endif -%}
+  {%- endfor -%}
+{%- endstyle -%}
+
+<footer class="c-footer color-{{ section.settings.color_scheme }} gradient">
+  <div class="c-footer__inner">
+    <!-- 上部: 縦並びリンク -->
+    <div class="c-footer__top">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'link_list' -%}
+          <div class="c-footer__block c-footer__block--{{ block.id }}"
+               style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+               {{ block.shopify_attributes }}>
+            {%- if block.settings.heading != blank -%}
+              <h2 class="c-footer__block-heading">{{ block.settings.heading }}</h2>
+            {%- endif -%}
+            {%- if block.settings.menu != blank -%}
+              <ul class="c-footer__link-list">
+                {%- for link in block.settings.menu.links -%}
+                  <li>
+                    <a href="{{ link.url }}">{{ link.title | escape }}</a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <!-- 下部: 横並びブロック -->
+    {%- assign has_bottom_blocks = false -%}
+    {%- for block in section.blocks -%}
+      {%- unless block.type == 'link_list' -%}
+        {%- assign has_bottom_blocks = true -%}
+      {%- endunless -%}
+    {%- endfor -%}
+
+    {%- if has_bottom_blocks -%}
+      <div class="c-footer__bottom">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'text' -%}
+              <div class="c-footer__bottom-block align-{{ block.settings.alignment }} c-footer__block--{{ block.id }}"
+                   style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+                   {{ block.shopify_attributes }}>
+                <div class="rte">{{ block.settings.text }}</div>
+              </div>
+
+            {%- when 'social' -%}
+              {%- liquid
+                assign has_social_icons = false
+                if settings.social_facebook_link != blank or settings.social_instagram_link != blank or settings.social_youtube_link != blank or settings.social_tiktok_link != blank or settings.social_twitter_link != blank or settings.social_pinterest_link != blank or settings.social_snapchat_link != blank or settings.social_tumblr_link != blank or settings.social_vimeo_link != blank
+                  assign has_social_icons = true
+                endif
+              -%}
+              {%- if has_social_icons -%}
+                <div class="c-footer__bottom-block align-{{ block.settings.alignment }} c-footer__block--{{ block.id }}"
+                     style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+                     {{ block.shopify_attributes }}>
+                  {%- render 'social-icons', class: 'c-footer__social-icons' -%}
+                </div>
+              {%- endif -%}
+
+            {%- when 'payment' -%}
+              <div class="c-footer__bottom-block align-{{ block.settings.alignment }} c-footer__block--{{ block.id }}"
+                   style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+                   {{ block.shopify_attributes }}>
+                {%- if block.settings.use_shopify_icons -%}
+                  <ul class="list-payment" role="list">
+                    {%- for type in shop.enabled_payment_types -%}
+                      <li class="list-payment__item">
+                        {{ type | payment_type_svg_tag: class: 'icon icon--full-color' }}
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- else -%}
+                  {%- if block.settings.custom_image != blank -%}
+                    <img src="{{ block.settings.custom_image | image_url: width: block.settings.icon_size }}"
+                         alt="Payment methods"
+                         width="{{ block.settings.icon_size }}"
+                         loading="lazy" />
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+
+            {%- when 'link_row' -%}
+              <div class="c-footer__bottom-block align-{{ block.settings.alignment }} c-footer__block--{{ block.id }}"
+                   style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+                   {{ block.shopify_attributes }}>
+                {%- assign link_count = 0 -%}
+                {%- for i in (1..6) -%}
+                  {%- capture link_id -%}link_{{ i }}{%- endcapture -%}
+                  {%- capture label_id -%}label_{{ i }}{%- endcapture -%}
+                  {%- if block.settings[label_id] != blank -%}
+                    {%- assign link_count = link_count | plus: 1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+
+                {%- if link_count > 0 -%}
+                  <ul class="c-footer__link-row">
+                    {%- assign link_index = 0 -%}
+                    {%- for i in (1..6) -%}
+                      {%- capture link_id -%}link_{{ i }}{%- endcapture -%}
+                      {%- capture label_id -%}label_{{ i }}{%- endcapture -%}
+                      {%- if block.settings[label_id] != blank -%}
+                        {%- assign link_index = link_index | plus: 1 -%}
+                        {%- if link_index > 1 and block.settings.separator != blank -%}
+                          <li><span class="separator">{{ block.settings.separator }}</span></li>
+                        {%- endif -%}
+                        <li>
+                          {%- if block.settings[link_id] != blank -%}
+                            <a href="{{ block.settings[link_id] }}">{{ block.settings[label_id] | escape }}</a>
+                          {%- else -%}
+                            <span>{{ block.settings[label_id] | escape }}</span>
+                          {%- endif -%}
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </div>
+
+            {%- when 'image' -%}
+              <div class="c-footer__bottom-block align-{{ block.settings.alignment }} c-footer__block--{{ block.id }}"
+                   style="margin-top: {{ block.settings.margin_top }}px; margin-bottom: {{ block.settings.margin_bottom }}px; margin-left: {{ block.settings.margin_left }}px; margin-right: {{ block.settings.margin_right }}px;"
+                   {{ block.shopify_attributes }}>
+                {%- if block.settings.image != blank -%}
+                  <img src="{{ block.settings.image | image_url: width: block.settings.width }}"
+                       alt="{{ block.settings.image.alt | escape }}"
+                       width="{{ block.settings.width }}"
+                       loading="lazy" />
+                {%- endif -%}
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "★ Custom Footer",
+  "tag": "footer",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "全体設定"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "背景色",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "カラースキーム",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "link_font_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "リンクフォントサイズ",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "余白設定"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上余白",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下余白",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "左右余白",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "下部エリア設定"
+    },
+    {
+      "type": "checkbox",
+      "id": "bottom_border",
+      "label": "下部に境界線を表示",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "bottom_border_color",
+      "label": "境界線の色",
+      "default": "#e8e8e8"
+    },
+    {
+      "type": "range",
+      "id": "bottom_margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下部エリアの上余白",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "bottom_padding_top",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "下部エリアの内側上余白",
+      "default": 16
+    }
+  ],
+  "blocks": [
+    {
+      "type": "link_list",
+      "name": "縦並びリンク",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "見出し",
+          "default": "Menu"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "メニュー"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "item_gap",
+          "min": 0,
+          "max": 24,
+          "step": 2,
+          "unit": "px",
+          "label": "項目の縦間隔",
+          "default": 6
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "テキスト",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "テキスト",
+          "default": "<p>© 2026</p>"
+        },
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "配置",
+          "options": [
+            { "value": "left", "label": "左" },
+            { "value": "center", "label": "中央" },
+            { "value": "right", "label": "右" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "social",
+      "name": "SNSリンク",
+      "settings": [
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "配置",
+          "options": [
+            { "value": "left", "label": "左" },
+            { "value": "center", "label": "中央" },
+            { "value": "right", "label": "右" }
+          ],
+          "default": "right"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "icon_size",
+          "min": 16,
+          "max": 48,
+          "step": 2,
+          "unit": "px",
+          "label": "アイコンサイズ",
+          "default": 22
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "payment",
+      "name": "支払い方法",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "use_shopify_icons",
+          "label": "Shopify標準アイコンを使用",
+          "default": true
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "カスタム画像"
+        },
+        {
+          "type": "range",
+          "id": "icon_size",
+          "min": 20,
+          "max": 80,
+          "step": 4,
+          "unit": "px",
+          "label": "アイコンサイズ",
+          "default": 40
+        },
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "配置",
+          "options": [
+            { "value": "left", "label": "左" },
+            { "value": "center", "label": "中央" },
+            { "value": "right", "label": "右" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "画像",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "画像"
+        },
+        {
+          "type": "range",
+          "id": "width",
+          "min": 20,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "label": "画像幅",
+          "default": 80
+        },
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "配置",
+          "options": [
+            { "value": "left", "label": "左" },
+            { "value": "center", "label": "中央" },
+            { "value": "right", "label": "右" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "link_row",
+      "name": "横並びリンク",
+      "settings": [
+        {
+          "type": "text",
+          "id": "separator",
+          "label": "区切り文字",
+          "default": "｜",
+          "info": "各リンクの間に表示する文字（スペースでも可）"
+        },
+        {
+          "type": "text",
+          "id": "label_1",
+          "label": "テキスト 1",
+          "default": "© 2026 Panio"
+        },
+        {
+          "type": "url",
+          "id": "link_1",
+          "label": "リンク 1"
+        },
+        {
+          "type": "text",
+          "id": "label_2",
+          "label": "テキスト 2",
+          "default": "返金ポリシー"
+        },
+        {
+          "type": "url",
+          "id": "link_2",
+          "label": "リンク 2"
+        },
+        {
+          "type": "text",
+          "id": "label_3",
+          "label": "テキスト 3",
+          "default": "プライバシーポリシー"
+        },
+        {
+          "type": "url",
+          "id": "link_3",
+          "label": "リンク 3"
+        },
+        {
+          "type": "text",
+          "id": "label_4",
+          "label": "テキスト 4"
+        },
+        {
+          "type": "url",
+          "id": "link_4",
+          "label": "リンク 4"
+        },
+        {
+          "type": "text",
+          "id": "label_5",
+          "label": "テキスト 5"
+        },
+        {
+          "type": "url",
+          "id": "link_5",
+          "label": "リンク 5"
+        },
+        {
+          "type": "text",
+          "id": "label_6",
+          "label": "テキスト 6"
+        },
+        {
+          "type": "url",
+          "id": "link_6",
+          "label": "リンク 6"
+        },
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "配置",
+          "options": [
+            { "value": "left", "label": "左" },
+            { "value": "center", "label": "中央" },
+            { "value": "right", "label": "右" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "range",
+          "id": "item_gap",
+          "min": 0,
+          "max": 32,
+          "step": 2,
+          "unit": "px",
+          "label": "項目の横間隔",
+          "default": 8
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "label": "フォントサイズ（0でデフォルト）",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font_color",
+          "label": "フォントカラーをカスタマイズ",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "font_color",
+          "label": "フォントカラー",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "margin_top",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "上余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_left",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "左余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_right",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "右余白",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "margin_bottom",
+          "min": 0,
+          "max": 60,
+          "step": 4,
+          "unit": "px",
+          "label": "下余白",
+          "default": 0
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "★ Custom Footer",
+      "blocks": [
+        {
+          "type": "link_list"
+        },
+        {
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

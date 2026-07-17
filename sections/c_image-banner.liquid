@@ -1,0 +1,489 @@
+{% comment %}
+  =============================================================================
+  c_image-banner.liquid
+  =============================================================================
+  作成日: 2026-06-27
+  作成者: s.tamaki (Devin)
+
+  目的:
+    panio2014.com 風のフルスクリーン・ファーストビューバナー。
+    上部にフル幅背景画像、その下部に横一列の大見出しナビを配置。
+    大見出しをホバーすると小見出しがドロップダウン表示される。
+
+  変更履歴:
+    2026-06-27 - 全面リファクタ。元 image-banner.liquid を廃止し、
+                 panio風バナー＋ナビに特化した構造に変更。
+  =============================================================================
+{% endcomment %}
+
+{%- liquid
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+
+  assign hide_banner_image = false
+  if section.settings.hide_image_templates != blank
+    assign hide_list = section.settings.hide_image_templates | split: ','
+    for tpl_name in hide_list
+      assign tpl_name_stripped = tpl_name | strip | downcase
+      assign current_template = template.name | downcase
+      if current_template == tpl_name_stripped
+        assign hide_banner_image = true
+        break
+      endif
+    endfor
+  endif
+-%}
+
+{%- style -%}
+  #PanioBanner-{{ section.id }} .c-panio-banner__media-wrapper {
+    height: {{ section.settings.banner_height | default: 85 }}vh;
+  }
+
+  {%- if section.settings.nav_alignment != blank -%}
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav-items {
+      justify-content: {{ section.settings.nav_alignment }};
+    }
+  {%- endif -%}
+
+  {%- if section.settings.nav_font_size > 0 -%}
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav-title {
+      font-size: {{ section.settings.nav_font_size }}px;
+    }
+  {%- endif -%}
+
+  {%- if section.settings.nav_font_weight != blank -%}
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav-title {
+      font-weight: {{ section.settings.nav_font_weight }};
+    }
+  {%- endif -%}
+
+  {%- if section.settings.use_custom_nav_color -%}
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav-title {
+      color: {{ section.settings.nav_font_color }} !important;
+    }
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav:hover .c-panio-banner__nav-title,
+    #PanioBanner-{{ section.id }} .c-panio-banner__nav.is-scrolled .c-panio-banner__nav-title {
+      color: {{ section.settings.nav_font_color_scrolled }} !important;
+    }
+  {%- endif -%}
+{%- endstyle -%}
+
+<section id="PanioBanner-{{ section.id }}" class="c-panio-banner{% if hide_banner_image %} c-panio-banner--no-image{% endif %}">
+  <nav class="c-panio-banner__nav{% if hide_banner_image %} c-panio-banner__nav--no-image{% endif %}" data-panio-nav>
+    {%- comment %} ── モバイル左側（ハンバーガー + 検索） ── {% endcomment -%}
+    <div class="c-panio-banner__mobile-left">
+      <button class="c-panio-banner__hamburger" aria-label="メニューを開く" data-panio-hamburger>
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      {%- if section.settings.show_search -%}
+        <a href="{{ routes.search_url }}" class="c-panio-banner__icon c-panio-banner__icon--mobile-search" aria-label="{{ 'general.search.search' | t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- comment %} ── ロゴ ── {% endcomment -%}
+    {%- if section.settings.show_logo -%}
+      <div class="c-panio-banner__nav-logo">
+        <a href="{{ routes.root_url }}">
+          {%- if section.settings.logo_image != blank -%}
+            {{
+              section.settings.logo_image
+              | image_url: width: section.settings.logo_width
+              | image_tag:
+                width: section.settings.logo_width,
+                alt: shop.name,
+                class: 'c-panio-banner__logo-img'
+            }}
+          {%- else -%}
+            <span class="c-panio-banner__logo-text">{{ shop.name }}</span>
+          {%- endif -%}
+        </a>
+      </div>
+    {%- endif -%}
+
+    {%- comment %} ── ナビ項目 ── {% endcomment -%}
+    <div class="c-panio-banner__nav-items">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'nav_group' -%}
+          <div class="c-panio-banner__nav-group" {{ block.shopify_attributes }}>
+            <a
+              href="{{ block.settings.link | default: '#' }}"
+              class="c-panio-banner__nav-title"
+            >
+              {{ block.settings.title }}
+            </a>
+
+            {%- if block.settings.sub_title_1 != blank or block.settings.sub_title_2 != blank or block.settings.sub_title_3 != blank -%}
+              <div class="c-panio-banner__submenu">
+                {%- if block.settings.sub_title_1 != blank -%}
+                  <a href="{{ block.settings.sub_link_1 | default: '#' }}" class="c-panio-banner__subitem">
+                    {{ block.settings.sub_title_1 }}
+                  </a>
+                {%- endif -%}
+                {%- if block.settings.sub_title_2 != blank -%}
+                  <a href="{{ block.settings.sub_link_2 | default: '#' }}" class="c-panio-banner__subitem">
+                    {{ block.settings.sub_title_2 }}
+                  </a>
+                {%- endif -%}
+                {%- if block.settings.sub_title_3 != blank -%}
+                  <a href="{{ block.settings.sub_link_3 | default: '#' }}" class="c-panio-banner__subitem">
+                    {{ block.settings.sub_title_3 }}
+                  </a>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- comment %} ── アイコン ── {% endcomment -%}
+    <div class="c-panio-banner__nav-icons">
+      {%- if section.settings.show_search -%}
+        <a href="{{ routes.search_url }}" class="c-panio-banner__icon c-panio-banner__icon--desktop-search" aria-label="{{ 'general.search.search' | t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_account -%}
+        <a href="{{ routes.account_url }}" class="c-panio-banner__icon" aria-label="{{ 'customer.account.title' | t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_cart -%}
+        <a href="{{ routes.cart_url }}" class="c-panio-banner__icon c-panio-banner__icon--cart" aria-label="{{ 'sections.header.cart' | t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          {%- if cart.item_count > 0 -%}
+            <span class="c-panio-banner__cart-count">{{ cart.item_count }}</span>
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+    </div>
+  </nav>
+
+  {%- comment %} ── モバイルドロワー ── {% endcomment -%}
+  <div class="c-panio-banner__drawer" data-panio-drawer>
+    <div class="c-panio-banner__drawer-header">
+      <button class="c-panio-banner__drawer-close" aria-label="メニューを閉じる" data-panio-drawer-close>
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="c-panio-banner__drawer-nav">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'nav_group' -%}
+          <div class="c-panio-banner__drawer-group">
+            <a href="{{ block.settings.link | default: '#' }}" class="c-panio-banner__drawer-title">
+              {{ block.settings.title }}
+            </a>
+            {%- if block.settings.sub_title_1 != blank or block.settings.sub_title_2 != blank or block.settings.sub_title_3 != blank -%}
+              <div class="c-panio-banner__drawer-sub">
+                {%- if block.settings.sub_title_1 != blank -%}
+                  <a href="{{ block.settings.sub_link_1 | default: '#' }}">{{ block.settings.sub_title_1 }}</a>
+                {%- endif -%}
+                {%- if block.settings.sub_title_2 != blank -%}
+                  <a href="{{ block.settings.sub_link_2 | default: '#' }}">{{ block.settings.sub_title_2 }}</a>
+                {%- endif -%}
+                {%- if block.settings.sub_title_3 != blank -%}
+                  <a href="{{ block.settings.sub_link_3 | default: '#' }}">{{ block.settings.sub_title_3 }}</a>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+  <div class="c-panio-banner__drawer-overlay" data-panio-drawer-overlay></div>
+
+  {%- unless hide_banner_image -%}
+    <div class="c-panio-banner__media-wrapper">
+      {%- if section.settings.image != blank -%}
+        {{
+          section.settings.image
+          | image_url: width: 3840
+          | image_tag:
+            width: section.settings.image.width,
+            height: section.settings.image.height,
+            class: 'c-panio-banner__media',
+            fetchpriority: fetch_priority
+        }}
+      {%- else -%}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg c-panio-banner__media' }}
+      {%- endif -%}
+    </div>
+  {%- endunless -%}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const nav = document.querySelector('[data-panio-nav]');
+      if (!nav) return;
+      function onScroll() {
+        if (window.scrollY > 10) {
+          nav.classList.add('is-scrolled');
+        } else {
+          nav.classList.remove('is-scrolled');
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      // Drawer toggle
+      const hamburger = document.querySelector('[data-panio-hamburger]');
+      const drawer = document.querySelector('[data-panio-drawer]');
+      const drawerClose = document.querySelector('[data-panio-drawer-close]');
+      const overlay = document.querySelector('[data-panio-drawer-overlay]');
+
+      if (hamburger && drawer) {
+        hamburger.addEventListener('click', function() {
+          drawer.classList.add('is-open');
+          overlay.classList.add('is-open');
+          document.body.style.overflow = 'hidden';
+        });
+        function closeDrawer() {
+          drawer.classList.remove('is-open');
+          overlay.classList.remove('is-open');
+          document.body.style.overflow = '';
+        }
+        if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+        if (overlay) overlay.addEventListener('click', closeDrawer);
+      }
+    });
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "★ ヘッダーバナー＋ナビ",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "背景画像"
+    },
+    {
+      "type": "text",
+      "id": "hide_image_templates",
+      "label": "ヘッダー画像を非表示にするテンプレート名",
+      "info": "カンマ区切りで指定。例: product, collection, page"
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "label": "バナー高さ（画面の高さに対する割合）",
+      "default": 85
+    },
+    {
+      "type": "header",
+      "content": "ロゴ"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_logo",
+      "label": "ロゴを表示",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_image",
+      "label": "ロゴ画像"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "ロゴ幅",
+      "default": 150
+    },
+    {
+      "type": "header",
+      "content": "ナビグループ"
+    },
+    {
+      "type": "select",
+      "id": "nav_alignment",
+      "label": "ナビの配置",
+      "options": [
+        { "value": "flex-start", "label": "左寄せ" },
+        { "value": "center", "label": "中央" },
+        { "value": "flex-end", "label": "右寄せ" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "nav_font_size",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "ナビのフォントサイズ（0でデフォルト）",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "nav_font_weight",
+      "label": "ナビのフォントウェイト",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Normal" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi Bold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_custom_nav_color",
+      "label": "ナビのフォントカラーをカスタマイズ",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "nav_font_color",
+      "label": "ナビのフォントカラー（通常時）",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "nav_font_color_scrolled",
+      "label": "ナビのフォントカラー（スクロール時）",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "アイコン"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "default": true,
+      "label": "検索アイコンを表示"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "default": true,
+      "label": "アカウントアイコンを表示"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart",
+      "default": true,
+      "label": "カートアイコンを表示"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "nav_group",
+      "name": "ナビグループ（大見出し）",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "MENU",
+          "label": "大見出し"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "大見出しのリンク先"
+        },
+        {
+          "type": "header",
+          "content": "小見出し 1"
+        },
+        {
+          "type": "text",
+          "id": "sub_title_1",
+          "label": "小見出し"
+        },
+        {
+          "type": "url",
+          "id": "sub_link_1",
+          "label": "リンク先"
+        },
+        {
+          "type": "header",
+          "content": "小見出し 2"
+        },
+        {
+          "type": "text",
+          "id": "sub_title_2",
+          "label": "小見出し"
+        },
+        {
+          "type": "url",
+          "id": "sub_link_2",
+          "label": "リンク先"
+        },
+        {
+          "type": "header",
+          "content": "小見出し 3"
+        },
+        {
+          "type": "text",
+          "id": "sub_title_3",
+          "label": "小見出し"
+        },
+        {
+          "type": "url",
+          "id": "sub_link_3",
+          "label": "リンク先"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "★ Panio風バナー＋ナビ",
+      "blocks": [
+        {
+          "type": "nav_group",
+          "settings": { "title": "TOP" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "APAREL&GOODS" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "PICK UP BRAND" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "ORIGINAL BRAND" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "INTERIOR" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "ABOUT" }
+        },
+        {
+          "type": "nav_group",
+          "settings": { "title": "CONTACT" }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
