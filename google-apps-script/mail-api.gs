@@ -25,7 +25,7 @@ function doPost(e) {
 
     let driveResult = null;
     if (data.saveToDrive && data.saveToDrive.filename && data.saveToDrive.content) {
-      driveResult = saveToDrive(data.saveToDrive.filename, data.saveToDrive.content);
+      driveResult = saveToDrive(data.saveToDrive.filename, data.saveToDrive.content, data.saveToDrive.mimeType);
     }
 
     const subject = `[fullgram Portal] ${data.type || 'データ'}の${data.action || '更新'}通知`;
@@ -44,8 +44,9 @@ function doPost(e) {
   }
 }
 
-function saveToDrive(filename, content) {
+function saveToDrive(filename, content, mimeType) {
   const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  const type = mimeType || MimeType.PLAIN_TEXT;
   const files = folder.getFilesByName(filename);
 
   if (files.hasNext()) {
@@ -54,7 +55,7 @@ function saveToDrive(filename, content) {
     return { updated: true, filename: filename, id: file.getId() };
   }
 
-  const file = folder.createFile(filename, content, MimeType.PLAIN_TEXT);
+  const file = folder.createFile(filename, content, type);
   return { created: true, filename: filename, id: file.getId() };
 }
 

@@ -2214,7 +2214,19 @@ class PolicyManager {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${a.download}\nダウンロードしたファイルは Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。`);
+        sendToGas({
+            type: 'ポリシー',
+            action: '承認・HTML生成',
+            itemName: tmpl.title,
+            detail: `ファイル名: ${a.download}`,
+            saveToDrive: {
+                filename: a.download,
+                content: fullHtml,
+                mimeType: 'text/html'
+            }
+        });
+
+        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${a.download}\nファイルはダウンロードされ、Google Drive の共有フォルダにも自動保存されました。`);
         this.showTaskList();
     }
 
@@ -2237,6 +2249,23 @@ const GAS_CONFIG = {
     toEmail: 'tamagon123@gmail.com'
 };
 const SETTINGS_PASSWORD = '0126';
+
+async function sendToGas(payload) {
+    const settings = (window.taskManager && window.taskManager.gasSettings) || {};
+    const url = settings.url || GAS_CONFIG.url;
+    const token = settings.token || GAS_CONFIG.token;
+    if (!url) return;
+    try {
+        await fetch(url, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...payload, token })
+        });
+    } catch (e) {
+        console.error('GAS send failed:', e);
+    }
+}
 
 // ============================================================
 // Task Manager for SKU rules and data management
@@ -2410,7 +2439,8 @@ class TaskManager {
                 else if (saveToDriveType === 'collections') data = this.collections;
                 body.saveToDrive = {
                     filename: `${saveToDriveType}.json`,
-                    content: JSON.stringify(data, null, 2)
+                    content: JSON.stringify(data, null, 2),
+                    mimeType: 'application/json'
                 };
             }
             await fetch(url, {
@@ -2566,11 +2596,24 @@ class TaskManager {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `sku-rule-check_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.txt`;
+        const filename = `sku-rule-check_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.txt`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+
+        sendToGas({
+            type: 'SKUルール',
+            action: 'テキスト出力',
+            itemName: 'SKUルール確認結果',
+            detail: `ファイル名: ${filename}`,
+            saveToDrive: {
+                filename,
+                content: text,
+                mimeType: 'text/plain'
+            }
+        });
     }
 
     // ============================================================
