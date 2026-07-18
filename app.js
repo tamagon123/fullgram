@@ -2146,19 +2146,21 @@ class PolicyManager {
     buildHtml(tmpl, values, activeKey) {
         let html = tmpl.template;
 
-        // Wrap each placeholder in a highlightable span keyed to its field key
+        // Wrap each scalar placeholder in a highlightable span keyed to its field key
         tmpl.fields.forEach(f => {
+            if (f.key === 'NON_RETURNABLE_ITEMS') return;
             const regex = new RegExp(`{{${f.key}}}`, 'g');
-            let val = values[f.key] || '';
+            let val = values[f.key];
             if (typeof val === 'boolean') {
                 val = val ? 'はい' : 'いいえ';
             } else {
-                val = this.escapeHtml(String(val));
+                val = this.escapeHtml(String(val ?? ''));
             }
             const activeClass = f.key === activeKey ? ' policy-preview-active' : '';
             html = html.replace(regex, `<span class="policy-preview-part${activeClass}" data-preview-key="${f.key}">${val}</span>`);
         });
 
+        // Handle list placeholder separately so it is not double-wrapped
         if (values.NON_RETURNABLE_ITEMS) {
             const items = values.NON_RETURNABLE_ITEMS.split('\n').filter(s => s.trim()).map(s => `<li>${this.escapeHtml(s.trim())}</li>`).join('\n  ');
             const activeClass = activeKey === 'NON_RETURNABLE_ITEMS' ? ' policy-preview-active' : '';
@@ -2209,7 +2211,8 @@ class PolicyManager {
     approve() {
         const tmpl = POLICY_TEMPLATES[this.currentKey];
         const values = this.getFieldValues();
-        const emptyLabels = tmpl.fields.filter(f => !f.disabled && !values[f.key]).map(f => f.label);
+        const isEmpty = v => v === '' || v === null || v === undefined;
+        const emptyLabels = tmpl.fields.filter(f => !f.disabled && isEmpty(values[f.key])).map(f => f.label);
         if (emptyLabels.length > 0) {
             if (!confirm(`未入力の項目があります：\n${emptyLabels.join('、')}\n\nこのままで承認しますか？`)) return;
         }
