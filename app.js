@@ -2308,7 +2308,14 @@ class TaskManager {
 
         document.getElementById('skuRuleBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
         document.getElementById('dataMenuBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
-        document.getElementById('dataMenuSettingsBtn')?.addEventListener('click', () => this.showSection('notification'));
+        document.getElementById('dataMenuSettingsBtn')?.addEventListener('click', () => {
+            const input = prompt('通知設定画面を開くにはパスワードを入力してください');
+            if (input === SETTINGS_PASSWORD) {
+                this.showSection('notification');
+            } else if (input !== null) {
+                alert('パスワードが正しくありません');
+            }
+        });
         document.getElementById('brandBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
         document.getElementById('tagBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
         document.getElementById('collectionBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
