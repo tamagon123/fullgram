@@ -1984,6 +1984,7 @@ class PolicyManager {
         document.getElementById('csvBackBtn').addEventListener('click', () => this.showSection('top'));
         document.getElementById('taskBackBtn').addEventListener('click', () => this.showSection('top'));
         document.getElementById('policyBackBtn').addEventListener('click', () => this.showSection('task'));
+        document.getElementById('policyMenuBackBtn')?.addEventListener('click', () => this.showSection('task'));
 
         document.getElementById('policySaveDraftBtn').addEventListener('click', () => this.saveDraft());
         document.getElementById('policyApproveBtn').addEventListener('click', () => this.approve());
@@ -2204,15 +2205,16 @@ class PolicyManager {
         const fullHtml = `<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${this.escapeHtml(tmpl.title)}</title>\n<style>\nbody { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; line-height: 1.7; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px 20px; background: #fff; }\nh2 { font-size: 1.5em; margin-top: 2em; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }\nh3 { font-size: 1.1em; margin-top: 1.5em; }\nul { padding-left: 1.5em; }\ntable { width: 100%; border-collapse: collapse; }\nth, td { padding: 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }\nth { width: 30%; }\na { color: #1a1a1a; }\n</style>\n</head>\n<body>\n${revisionComment}${html}\n</body>\n</html>`;
 
         const revisionSuffix = revisionNote ? `_修正依頼_${this.sanitizeFilename(revisionNote.slice(0, 20))}` : '';
-        const filename = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
+        const serverFilename = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
+        const localFilename = `${tmpl.filenamePrefix}_local${revisionSuffix}_v${version}_${timestamp}.html`;
 
-        const downloadLocal = confirm(`生成したHTMLは Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        const downloadLocal = confirm(`生成したHTMLは提出用サーバーにアップロードされます。\nローカルにもダウンロードしますか？`);
         if (downloadLocal) {
             const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = localFilename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2223,15 +2225,15 @@ class PolicyManager {
             type: 'ポリシー',
             action: '承認・HTML生成',
             itemName: tmpl.title,
-            detail: `ファイル名: ${filename}`,
+            detail: `ファイル名: ${serverFilename}`,
             saveToDrive: {
-                filename,
+                filename: serverFilename,
                 content: fullHtml,
                 mimeType: 'text/html'
             }
         });
 
-        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${filename}\nGoogle Drive の共有フォルダに自動保存しました。`);
+        alert(`「${tmpl.title}」を承認しました。\n提出用サーバーにアップロードしました。`);
         this.showTaskList();
     }
 
@@ -2545,11 +2547,11 @@ class TaskManager {
                 <textarea id="skuOverallNote" rows="4" placeholder="全体に関する追加項目や訂正があれば入力してください">${this.escapeHtml(saved.overallNote || '')}</textarea>
             </div>
             <div class="sku-rule-actions">
-                <button id="skuSaveBtn" class="btn btn-secondary">下書き保存</button>
-                <button id="skuExportBtn" class="btn btn-success">確認結果をテキスト出力</button>
+                <button id="skuSaveBtn" class="btn btn-secondary">一時保存</button>
+                <button id="skuExportBtn" class="btn btn-success">保存して完了</button>
             </div>
             <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
-                <p><strong>出力について：</strong>「確認結果をテキスト出力」を押すと、各項目のOK/訂正依頼内容をまとめたテキストファイルがダウンロードされます。ダウンロードしたファイルは Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。古いファイルは削除する必要はありません。</p>
+                <p><strong>保存について：</strong>「保存して完了」を押すと、各項目のOK/訂正依頼内容をまとめたテキストファイルが提出用サーバーに自動保存されます。同時にローカルにも保存するか確認が表示されます。古いファイルは削除する必要はありません。</p>
             </div>
         `;
 
@@ -2597,15 +2599,17 @@ class TaskManager {
         });
         text += `--------------------------------\n全体の訂正依頼:\n${checks.overallNote || 'なし'}\n`;
 
-        const filename = `sku-rule-check_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.txt`;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const serverFilename = `sku-rule-check_${timestamp}.txt`;
+        const localFilename = `sku-rule-check_local_${timestamp}.txt`;
 
-        const downloadLocal = confirm(`テキストファイルは Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        const downloadLocal = confirm(`テキストファイルは提出用サーバーにアップロードされます。\nローカルにもダウンロードしますか？`);
         if (downloadLocal) {
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = localFilename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2616,9 +2620,9 @@ class TaskManager {
             type: 'SKUルール',
             action: 'テキスト出力',
             itemName: 'SKUルール確認結果',
-            detail: `ファイル名: ${filename}`,
+            detail: `ファイル名: ${serverFilename}`,
             saveToDrive: {
-                filename,
+                filename: serverFilename,
                 content: text,
                 mimeType: 'text/plain'
             }
@@ -2671,10 +2675,10 @@ class TaskManager {
                     </table>
                 </div>
                 <div class="data-actions">
-                    <button id="brandExportBtn" class="btn btn-success">brands.json としてダウンロード</button>
+                    <button id="brandExportBtn" class="btn btn-success">保存して完了</button>
                 </div>
                 <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
-                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「brands.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の brands.json を参照します。古いファイルは削除する必要はありません。</p>
+                    <p><strong>保存について：</strong>「保存して完了」を押すとブランド情報が提出用サーバーに自動保存されます。同時にローカルにも保存するか確認が表示されます。商品CSV生成画面では最新のブランド情報を参照します。古いファイルは削除する必要はありません。</p>
                 </div>
             </div>
         `;
@@ -2752,10 +2756,10 @@ class TaskManager {
                     </table>
                 </div>
                 <div class="data-actions">
-                    <button id="tagExportBtn" class="btn btn-success">tags.json としてダウンロード</button>
+                    <button id="tagExportBtn" class="btn btn-success">保存して完了</button>
                 </div>
                 <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
-                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「tags.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の tags.json を参照します。古いファイルは削除する必要はありません。</p>
+                    <p><strong>保存について：</strong>「保存して完了」を押すとタグ情報が提出用サーバーに自動保存されます。同時にローカルにも保存するか確認が表示されます。商品CSV生成画面では最新のタグ情報を参照します。古いファイルは削除する必要はありません。</p>
                 </div>
             </div>
         `;
@@ -2846,10 +2850,10 @@ class TaskManager {
                     </table>
                 </div>
                 <div class="data-actions">
-                    <button id="collectionExportBtn" class="btn btn-success">collections.json としてダウンロード</button>
+                    <button id="collectionExportBtn" class="btn btn-success">保存して完了</button>
                 </div>
                 <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
-                    <p><strong>保存について：</strong>追加・削除した内容はブラウザの localStorage に保存されます。「collections.json としてダウンロード」でJSONファイルを出力し、Google Drive の「_全員」フォルダ内の「提出用」フォルダに配置してください。商品CSV生成画面では最新の collections.json を参照します。古いファイルは削除する必要はありません。</p>
+                    <p><strong>保存について：</strong>「保存して完了」を押すとコレクション情報が提出用サーバーに自動保存されます。同時にローカルにも保存するか確認が表示されます。商品CSV生成画面では最新のコレクション情報を参照します。古いファイルは削除する必要はありません。</p>
                 </div>
             </div>
         `;
@@ -2890,25 +2894,28 @@ class TaskManager {
     }
 
     exportJson(type) {
-        let data, filename, label;
-        if (type === 'brands') { data = this.brands; filename = 'brands.json'; label = 'ブランド'; }
-        else if (type === 'tags') { data = this.tags; filename = 'tags.json'; label = 'タグ'; }
-        else if (type === 'collections') { data = this.collections; filename = 'collections.json'; label = 'コレクション'; }
+        let data, serverFilename, label;
+        if (type === 'brands') { data = this.brands; serverFilename = 'brands.json'; label = 'ブランド'; }
+        else if (type === 'tags') { data = this.tags; serverFilename = 'tags.json'; label = 'タグ'; }
+        else if (type === 'collections') { data = this.collections; serverFilename = 'collections.json'; label = 'コレクション'; }
 
-        const downloadLocal = confirm(`${filename} は Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const localFilename = `${type}_local_${timestamp}.json`;
+
+        const downloadLocal = confirm(`${serverFilename} は提出用サーバーに自動保存されます。\nローカルにもダウンロードしますか？`);
         if (downloadLocal) {
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = localFilename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
-        this.notify(label, 'JSONダウンロード', filename, `${filename} がGoogle Drive に自動保存されました。`, type);
+        this.notify(label, 'JSON保存', serverFilename, `${serverFilename} が提出用サーバーにアップロードされました。`, type);
     }
 
     escapeHtml(text) {

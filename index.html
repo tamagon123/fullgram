@@ -94,6 +94,9 @@
         <!-- ポリシー・法的情報管理画面 -->
         <main id="policyMain" style="display:none;">
             <div id="policyTaskList" class="policy-section">
+                <div class="page-back-header" style="margin-bottom: 16px;">
+                    <button id="policyMenuBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
+                </div>
                 <h2>ポリシー・法的情報管理</h2>
                 <p class="subtitle">クライアント確認・承認が必要な項目を管理します</p>
                 <div id="policyTaskCards" class="policy-task-list"></div>
@@ -116,11 +119,11 @@
                     </div>
                 </div>
                 <div class="policy-actions">
-                    <button id="policySaveDraftBtn" class="btn btn-secondary">下書き保存</button>
-                    <button id="policyApproveBtn" class="btn btn-success">承認してHTMLを生成</button>
+                    <button id="policySaveDraftBtn" class="btn btn-secondary">一時保存</button>
+                    <button id="policyApproveBtn" class="btn btn-success">承認する</button>
                 </div>
                 <div class="policy-approval-note" style="margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px;">
-                    <p><strong>承認について：</strong>「承認してHTMLを生成」を押すと、現在の内容でHTMLファイルが生成・ダウンロードされ、Google Drive の共有フォルダにも自動保存されます。承認済みの項目は一覧にチェックマークが表示されます。再度編集する場合は、新しいHTMLファイルとして保存されます。古いファイルは削除する必要はありません。</p>
+                    <p><strong>承認について：</strong>「承認する」を押すと、現在の内容で提出用サーバーに自動保存されます。同時にローカルにも保存するか確認が表示されます。承認済みの項目は一覧にチェックマークが表示されます。再度編集する場合は、新しいファイルとして保存されます。古いファイルは削除する必要はありません。</p>
                 </div>
             </div>
         </main>
@@ -132,7 +135,7 @@
                 <button id="dataMenuSettingsBtn" class="btn btn-ghost settings-btn" title="通知設定">通知設定</button>
             </div>
             <h2>データ登録</h2>
-            <p class="subtitle">ブランド、タグ、コレクションを管理します。追加・削除・JSON出力時に Google Drive の共有フォルダに自動保存されます。</p>
+            <p class="subtitle">ブランド、タグ、コレクションを管理します。追加・削除・「保存して完了」時に提出用サーバーに自動保存されます。</p>
             <div class="top-menu-grid">
                 <div class="top-menu-card" data-target="brand">
                     <div class="top-menu-icon">BRAND</div>
@@ -206,7 +209,7 @@
                 <button id="skuRuleBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
             </div>
             <h2>SKUルール作成</h2>
-            <p class="subtitle">現在のSKUルールを確認し、追加項目や訂正箇所があれば入力してください。テキスト出力時は Google Drive の共有フォルダにも自動保存されます。</p>
+            <p class="subtitle">現在のSKUルールを確認し、追加項目や訂正箇所があれば入力してください。「保存して完了」を押すと提出用サーバーに自動保存されます。</p>
             <div id="skuRuleContainer"></div>
         </main>
 
