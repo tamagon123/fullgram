@@ -2249,7 +2249,7 @@ class PolicyManager {
 // Default Google Apps Script config for email notifications.
 // After deploying the GAS web app, set the URL here so all users share it.
 const GAS_CONFIG = {
-    url: 'https://script.google.com/macros/s/AKfycbyGlszZU17vkEazTmi8_k7KETz6vmF5BQZW19spQqG2ufB3qHeeL69YuvTn5wE1zLmU4Q/exec',
+    url: 'https://script.google.com/macros/s/AKfycbylwrpxSaN5hxMXOpPrU4jFlqQkeikQ16vRIr5y4WyhO4QZgMAgNb4CQ3L3r-conBqw2w/exec',
     token: 'fullgram-portal-token-2026',
     toEmail: 'tamagon123@gmail.com'
 };
