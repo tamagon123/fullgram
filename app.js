@@ -2925,13 +2925,14 @@ class TaskManager {
     }
 
     exportJson(type) {
-        let data, serverFilename, label;
-        if (type === 'brands') { data = this.brands; serverFilename = 'brands.json'; label = 'ブランド'; }
-        else if (type === 'tags') { data = this.tags; serverFilename = 'tags.json'; label = 'タグ'; }
-        else if (type === 'collections') { data = this.collections; serverFilename = 'collections.json'; label = 'コレクション'; }
+        let data, baseName, label;
+        if (type === 'brands') { data = this.brands; baseName = 'brands'; label = 'ブランド'; }
+        else if (type === 'tags') { data = this.tags; baseName = 'tags'; label = 'タグ'; }
+        else if (type === 'collections') { data = this.collections; baseName = 'collections'; label = 'コレクション'; }
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        const localFilename = `${type}_local_${timestamp}.json`;
+        const serverFilename = `${baseName}_${timestamp}.json`;
+        const localFilename = `${baseName}_local_${timestamp}.json`;
 
         if (!confirm(`${label}データを提出用サーバーに保存しますか？`)) return;
 
