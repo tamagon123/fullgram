@@ -2632,7 +2632,9 @@ class TaskManager {
         const serverFilename = `sku-rule-check_${timestamp}.txt`;
         const localFilename = `sku-rule-check_local_${timestamp}.txt`;
 
-        const downloadLocal = confirm(`テキストファイルは提出用サーバーにアップロードされます。\nローカルにもダウンロードしますか？`);
+        if (!confirm(`SKUルール確認結果を提出用サーバーに保存しますか？`)) return;
+
+        const downloadLocal = confirm(`提出用サーバーにアップロードしました。\nローカルにもダウンロードしますか？`);
         if (downloadLocal) {
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -2931,7 +2933,9 @@ class TaskManager {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         const localFilename = `${type}_local_${timestamp}.json`;
 
-        const downloadLocal = confirm(`${serverFilename} は提出用サーバーに自動保存されます。\nローカルにもダウンロードしますか？`);
+        if (!confirm(`${label}データを提出用サーバーに保存しますか？`)) return;
+
+        const downloadLocal = confirm(`${serverFilename} が提出用サーバーにアップロードされました。\nローカルにもダウンロードしますか？`);
         if (downloadLocal) {
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
             const url = URL.createObjectURL(blob);
