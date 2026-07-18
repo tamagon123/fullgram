@@ -1,6 +1,6 @@
 /**
- * fullgram Portal Site 用 メール通知 API
- * 
+ * fullgram Portal Site 用 メール通知 + Google Drive 自動保存 API
+ *
  * デプロイ方法:
  * 1. https://script.google.com/ で新しいプロジェクトを作成
  * 2. このコードを貼り付ける
@@ -9,6 +9,8 @@
  *    アクセスできるユーザー: 全員
  * 5. デプロイして Web App URL を取得
  * 6. アプリ側の「通知設定」に URL を設定
+ *
+ * 初回実行時は Gmail / Google Drive へのアクセス権限承認が必要です。
  */
 
 const GAS_TOKEN = 'fullgram-portal-token-2026';
@@ -16,6 +18,9 @@ const DEFAULT_TO_EMAIL = 'tamagon123@gmail.com';
 const DRIVE_FOLDER_ID = '1y_i3qFdUqNQgPqLooP-sSVs8xXJ4XBhk';
 
 function doPost(e) {
+  Logger.log('doPost called');
+  Logger.log(e.postData.contents);
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -115,10 +120,6 @@ function buildEmailBody(data, driveResult, driveError) {
     lines.push('');
   }
 
-  if (data.type === 'JSONダウンロード' && !driveResult && !driveError) {
-    lines.push('※ ファイルは Google Drive の「_全員/提出用」フォルダへ配置してください。');
-  }
-
   return lines.join('\n');
 }
 
@@ -126,4 +127,36 @@ function jsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ============================================================
+   以下はデバッグ用関数です。
+   実行したい関数の名前を選択して「実行」してください。
+   ============================================================ */
+
+function testDriveAccess() {
+  try {
+    Logger.log('DRIVE_FOLDER_ID: ' + DRIVE_FOLDER_ID);
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log('フォルダ名: ' + folder.getName());
+    const newFile = folder.createFile('gas-test.txt', 'test', MimeType.PLAIN_TEXT);
+    Logger.log('ファイル作成成功: ' + newFile.getId());
+  } catch (e) {
+    Logger.log('エラー: ' + e.toString());
+  }
+}
+
+function testSaveToDrive() {
+  saveToDrive('test.json', '{"test": true}', MimeType.JSON);
+}
+
+function testSaveDebug() {
+  try {
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log('フォルダ名: ' + folder.getName());
+    const result = saveToDrive('test.json', '{"test": true}', MimeType.JSON);
+    Logger.log('結果: ' + JSON.stringify(result));
+  } catch (e) {
+    Logger.log('エラー: ' + e.toString());
+  }
 }
