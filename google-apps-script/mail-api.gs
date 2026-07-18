@@ -16,20 +16,35 @@ const DEFAULT_TO_EMAIL = 'tamagon123@gmail.com';
 const DRIVE_FOLDER_ID = '1y_i3qFdUqNQgPqLooP-sSVs8xXJ4XBhk';
 
 function doPost(e) {
+  const lock = LockService.getScriptLock();
   try {
-    const data = JSON.parse(e.postData.contents || '{}');
+    lock.waitLock(10000);
+  } catch (e) {
+    return jsonResponse({ success: false, error: 'Lock timeout' });
+  }
+
+  let driveResult = null;
+  let driveError = null;
+  let data = {};
+
+  try {
+    data = JSON.parse(e.postData.contents || '{}');
 
     if (data.token !== GAS_TOKEN) {
+      lock.releaseLock();
       return jsonResponse({ success: false, error: 'Invalid token' });
     }
 
-    let driveResult = null;
     if (data.saveToDrive && data.saveToDrive.filename && data.saveToDrive.content) {
-      driveResult = saveToDrive(data.saveToDrive.filename, data.saveToDrive.content, data.saveToDrive.mimeType);
+      try {
+        driveResult = saveToDrive(data.saveToDrive.filename, data.saveToDrive.content, data.saveToDrive.mimeType);
+      } catch (error) {
+        driveError = error.toString();
+      }
     }
 
     const subject = `[fullgram Portal] ${data.type || 'データ'}の${data.action || '更新'}通知`;
-    const body = buildEmailBody(data, driveResult);
+    const body = buildEmailBody(data, driveResult, driveError);
 
     GmailApp.sendEmail(
       data.to || DEFAULT_TO_EMAIL,
@@ -38,8 +53,15 @@ function doPost(e) {
       { name: 'fullgram Portal' }
     );
 
+    lock.releaseLock();
+
+    if (driveError) {
+      return jsonResponse({ success: false, error: driveError, drive: driveResult });
+    }
+
     return jsonResponse({ success: true, drive: driveResult });
   } catch (error) {
+    lock.releaseLock();
     return jsonResponse({ success: false, error: error.toString() });
   }
 }
@@ -59,7 +81,7 @@ function saveToDrive(filename, content, mimeType) {
   return { created: true, filename: filename, id: file.getId() };
 }
 
-function buildEmailBody(data, driveResult) {
+function buildEmailBody(data, driveResult, driveError) {
   const lines = [
     'fullgram Portal Site のデータ登録が更新されました。',
     '',
@@ -87,7 +109,13 @@ function buildEmailBody(data, driveResult) {
     lines.push('');
   }
 
-  if (data.type === 'JSONダウンロード' && !driveResult) {
+  if (driveError) {
+    lines.push('【Google Drive 自動保存エラー】');
+    lines.push(driveError);
+    lines.push('');
+  }
+
+  if (data.type === 'JSONダウンロード' && !driveResult && !driveError) {
     lines.push('※ ファイルは Google Drive の「_全員/提出用」フォルダへ配置してください。');
   }
 

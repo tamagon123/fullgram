@@ -2203,30 +2203,35 @@ class PolicyManager {
         const revisionComment = revisionNote ? `<!-- 訂正依頼: ${this.escapeHtml(revisionNote)} -->\n` : '';
         const fullHtml = `<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${this.escapeHtml(tmpl.title)}</title>\n<style>\nbody { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; line-height: 1.7; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px 20px; background: #fff; }\nh2 { font-size: 1.5em; margin-top: 2em; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }\nh3 { font-size: 1.1em; margin-top: 1.5em; }\nul { padding-left: 1.5em; }\ntable { width: 100%; border-collapse: collapse; }\nth, td { padding: 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }\nth { width: 30%; }\na { color: #1a1a1a; }\n</style>\n</head>\n<body>\n${revisionComment}${html}\n</body>\n</html>`;
 
-        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
         const revisionSuffix = revisionNote ? `_修正依頼_${this.sanitizeFilename(revisionNote.slice(0, 20))}` : '';
-        a.download = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const filename = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
+
+        const downloadLocal = confirm(`生成したHTMLは Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        if (downloadLocal) {
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
         sendToGas({
             type: 'ポリシー',
             action: '承認・HTML生成',
             itemName: tmpl.title,
-            detail: `ファイル名: ${a.download}`,
+            detail: `ファイル名: ${filename}`,
             saveToDrive: {
-                filename: a.download,
+                filename,
                 content: fullHtml,
                 mimeType: 'text/html'
             }
         });
 
-        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${a.download}\nファイルはダウンロードされ、Google Drive の共有フォルダにも自動保存されました。`);
+        alert(`「${tmpl.title}」を承認しました。\nファイル名: ${filename}\nGoogle Drive の共有フォルダに自動保存しました。`);
         this.showTaskList();
     }
 
@@ -2592,16 +2597,20 @@ class TaskManager {
         });
         text += `--------------------------------\n全体の訂正依頼:\n${checks.overallNote || 'なし'}\n`;
 
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
         const filename = `sku-rule-check_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.txt`;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+
+        const downloadLocal = confirm(`テキストファイルは Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        if (downloadLocal) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
         sendToGas({
             type: 'SKUルール',
@@ -2885,16 +2894,21 @@ class TaskManager {
         if (type === 'brands') { data = this.brands; filename = 'brands.json'; label = 'ブランド'; }
         else if (type === 'tags') { data = this.tags; filename = 'tags.json'; label = 'タグ'; }
         else if (type === 'collections') { data = this.collections; filename = 'collections.json'; label = 'コレクション'; }
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        this.notify(label, 'JSONダウンロード', filename, `${filename} がダウンロードされました。Google Drive に自動保存しました。`, type);
+
+        const downloadLocal = confirm(`${filename} は Google Drive の共有フォルダに自動保存されます。\nローカルにもダウンロードしますか？`);
+        if (downloadLocal) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        this.notify(label, 'JSONダウンロード', filename, `${filename} がGoogle Drive に自動保存されました。`, type);
     }
 
     escapeHtml(text) {
