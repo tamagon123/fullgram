@@ -2236,6 +2236,7 @@ const GAS_CONFIG = {
     token: 'fullgram-portal-token-2026',
     toEmail: 'tamagon123@gmail.com'
 };
+const SETTINGS_PASSWORD = '0126';
 
 // ============================================================
 // Task Manager for SKU rules and data management
@@ -2353,7 +2354,17 @@ class TaskManager {
         document.getElementById('gasTokenInput').value = settings.token || GAS_CONFIG.token;
     }
 
+    checkSettingsPassword() {
+        const input = document.getElementById('settingsPasswordInput').value.trim();
+        if (input !== SETTINGS_PASSWORD) {
+            alert('設定パスワードが正しくありません');
+            return false;
+        }
+        return true;
+    }
+
     saveGasSettings() {
+        if (!this.checkSettingsPassword()) return;
         this.gasSettings = {
             url: document.getElementById('gasUrlInput').value.trim(),
             toEmail: document.getElementById('gasToEmailInput').value.trim(),
@@ -2364,6 +2375,7 @@ class TaskManager {
     }
 
     async testGasNotification() {
+        if (!this.checkSettingsPassword()) return;
         this.saveGasSettings();
         await this.notify('通知設定', 'テスト送信', '通知設定', 'これはテスト通知です。');
         alert('テスト通知を送信しました');

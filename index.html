@@ -161,6 +161,16 @@
             <p class="subtitle">データ登録時のメール通知設定を行います</p>
             <div class="data-manager">
                 <div class="data-form">
+                    <h3>通知設定のロック解除</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>設定パスワード</label>
+                            <input type="password" id="settingsPasswordInput" placeholder="設定用パスワード">
+                            <p class="policy-field-help">通知先の変更には設定用パスワードが必要です。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="data-form">
                     <h3>Google Apps Script 連携</h3>
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
@@ -1055,7 +1065,7 @@
 
     <script>
         (function() {
-            const APP_PASSWORD = '0126';
+            const APP_PASSWORD = 'fullgram1996';
             const loginScreen = document.getElementById('loginScreen');
             const appContainer = document.getElementById('appContainer');
             const loginBtn = document.getElementById('loginBtn');
