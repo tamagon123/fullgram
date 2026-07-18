@@ -2388,25 +2388,36 @@ class TaskManager {
         alert('テスト通知を送信しました');
     }
 
-    async notify(type, action, itemName, detail) {
+    async notify(type, action, itemName, detail, saveToDriveType) {
         const settings = this.gasSettings || {};
         const url = settings.url || GAS_CONFIG.url;
         const token = settings.token || GAS_CONFIG.token;
         const toEmail = settings.toEmail || GAS_CONFIG.toEmail;
         if (!url) return;
         try {
+            const body = {
+                token,
+                to: toEmail,
+                type,
+                action,
+                itemName,
+                detail
+            };
+            if (saveToDriveType) {
+                let data;
+                if (saveToDriveType === 'brands') data = this.brands;
+                else if (saveToDriveType === 'tags') data = this.tags;
+                else if (saveToDriveType === 'collections') data = this.collections;
+                body.saveToDrive = {
+                    filename: `${saveToDriveType}.json`,
+                    content: JSON.stringify(data, null, 2)
+                };
+            }
             await fetch(url, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    token,
-                    to: toEmail,
-                    type,
-                    action,
-                    itemName,
-                    detail
-                })
+                body: JSON.stringify(body)
             });
         } catch (e) {
             console.error('Notify failed:', e);
@@ -2634,7 +2645,7 @@ class TaskManager {
         if (!this.brands) this.brands = {};
         this.brands[name] = { reading, code };
         this.saveData();
-        this.notify('ブランド', '追加', name, `読み: ${reading}\nSKUコード: ${code}`);
+        this.notify('ブランド', '追加', name, `読み: ${reading}\nSKUコード: ${code}`, 'brands');
         this.renderBrandManager();
     }
 
@@ -2643,7 +2654,7 @@ class TaskManager {
         if (this.brands) {
             delete this.brands[name];
             this.saveData();
-            this.notify('ブランド', '削除', name);
+            this.notify('ブランド', '削除', name, '', 'brands');
         }
         this.renderBrandManager();
     }
@@ -2715,7 +2726,7 @@ class TaskManager {
         if (!this.tags.tags) this.tags.tags = [];
         this.tags.tags.push({ name, description });
         this.saveData();
-        this.notify('タグ', '追加', name, `説明: ${description}`);
+        this.notify('タグ', '追加', name, `説明: ${description}`, 'tags');
         this.renderTagManager();
     }
 
@@ -2725,7 +2736,7 @@ class TaskManager {
             const removed = this.tags.tags[idx];
             this.tags.tags.splice(idx, 1);
             this.saveData();
-            this.notify('タグ', '削除', typeof removed === 'string' ? removed : (removed.name || ''), `説明: ${typeof removed === 'string' ? '' : (removed.description || '')}`);
+            this.notify('タグ', '削除', typeof removed === 'string' ? removed : (removed.name || ''), `説明: ${typeof removed === 'string' ? '' : (removed.description || '')}`, 'tags');
         }
         this.renderTagManager();
     }
@@ -2811,7 +2822,7 @@ class TaskManager {
         if (!this.collections.collections) this.collections.collections = [];
         this.collections.collections.push({ name, description, tags });
         this.saveData();
-        this.notify('コレクション', '追加', name, `説明: ${description}\n紐づけるタグ: ${tags.join(', ')}`);
+        this.notify('コレクション', '追加', name, `説明: ${description}\n紐づけるタグ: ${tags.join(', ')}`, 'collections');
         this.renderCollectionManager();
     }
 
@@ -2821,7 +2832,7 @@ class TaskManager {
             const removed = this.collections.collections[idx];
             this.collections.collections.splice(idx, 1);
             this.saveData();
-            this.notify('コレクション', '削除', typeof removed === 'string' ? removed : (removed.name || ''));
+            this.notify('コレクション', '削除', typeof removed === 'string' ? removed : (removed.name || ''), '', 'collections');
         }
         this.renderCollectionManager();
     }
@@ -2840,7 +2851,7 @@ class TaskManager {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        this.notify(label, 'JSONダウンロード', filename, `${filename} がダウンロードされました。Google Drive の「_全員/提出用」フォルダへ配置してください。`);
+        this.notify(label, 'JSONダウンロード', filename, `${filename} がダウンロードされました。Google Drive に自動保存しました。`, type);
     }
 
     escapeHtml(text) {
