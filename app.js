@@ -2302,12 +2302,12 @@ class TaskManager {
                 if (target === 'brand') this.showSection('brand');
                 else if (target === 'tag') this.showSection('tag');
                 else if (target === 'collection') this.showSection('collection');
-                else if (target === 'notification') this.showSection('notification');
             });
         });
 
         document.getElementById('skuRuleBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
         document.getElementById('dataMenuBackBtn').addEventListener('click', () => this.showSection('taskMenu'));
+        document.getElementById('dataMenuSettingsBtn')?.addEventListener('click', () => this.showSection('notification'));
         document.getElementById('brandBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
         document.getElementById('tagBackBtn').addEventListener('click', () => this.showSection('dataMenu'));
         document.getElementById('collectionBackBtn').addEventListener('click', () => this.showSection('dataMenu'));

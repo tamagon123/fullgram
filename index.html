@@ -129,6 +129,7 @@
         <main id="dataMenu" style="display:none;">
             <div class="page-back-header" style="margin-bottom: 16px;">
                 <button id="dataMenuBackBtn" class="btn btn-secondary">← タスク一覧へ戻る</button>
+                <button id="dataMenuSettingsBtn" class="btn btn-ghost settings-btn" title="通知設定">通知設定</button>
             </div>
             <h2>データ登録</h2>
             <p class="subtitle">ブランド、タグ、コレクションを管理します</p>
@@ -147,11 +148,6 @@
                     <div class="top-menu-icon">COLL</div>
                     <h3>コレクション管理</h3>
                     <p>コレクション名、紐づけるタグ、説明を登録</p>
-                </div>
-                <div class="top-menu-card" data-target="notification">
-                    <div class="top-menu-icon">MAIL</div>
-                    <h3>通知設定</h3>
-                    <p>データ登録時のメール通知設定</p>
                 </div>
             </div>
         </main>
@@ -1059,7 +1055,7 @@
 
     <script>
         (function() {
-            const APP_PASSWORD = 'fullgram1996';
+            const APP_PASSWORD = '0126';
             const loginScreen = document.getElementById('loginScreen');
             const appContainer = document.getElementById('appContainer');
             const loginBtn = document.getElementById('loginBtn');

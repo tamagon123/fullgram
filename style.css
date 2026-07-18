@@ -1856,6 +1856,22 @@ textarea.policy-input {
     border-bottom: 1px solid var(--color-border);
 }
 
+.settings-btn {
+    margin-left: auto;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.settings-btn:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border-strong);
+}
+
 /* ============================================================
    SKU Rule & Data Manager
    ============================================================ */
