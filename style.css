@@ -1749,6 +1749,16 @@ textarea.policy-input {
     font-weight: 600;
 }
 
+.policy-preview-part {
+    transition: background-color 0.2s ease;
+    border-radius: 2px;
+}
+
+.policy-preview-part.policy-preview-active {
+    background-color: #fff3cd;
+    outline: 2px solid #ffc107;
+}
+
 .policy-actions {
     display: flex;
     gap: 12px;

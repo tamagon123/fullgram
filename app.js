@@ -2076,13 +2076,13 @@ class PolicyManager {
             const disabledClass = f.disabled ? ' policy-input-disabled' : '';
             let input = '';
             if (f.type === 'textarea') {
-                input = `<textarea class="policy-input${disabledClass}" id="policyField_${f.key}" rows="4" ${disabledAttr}>${this.escapeHtml(value)}</textarea>`;
+                input = `<textarea class="policy-input${disabledClass}" id="policyField_${f.key}" data-preview-key="${f.key}" rows="4" ${disabledAttr}>${this.escapeHtml(value)}</textarea>`;
             } else if (f.type === 'select') {
-                input = `<select class="policy-input${disabledClass}" id="policyField_${f.key}" ${disabledAttr}>${f.options.map(o => `<option value="${this.escapeHtml(o.value)}" ${o.value === value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}</select>`;
+                input = `<select class="policy-input${disabledClass}" id="policyField_${f.key}" data-preview-key="${f.key}" ${disabledAttr}>${f.options.map(o => `<option value="${this.escapeHtml(o.value)}" ${o.value === value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}</select>`;
             } else if (f.type === 'checkbox') {
-                input = `<label class="policy-checkbox-label"><input type="checkbox" id="policyField_${f.key}" ${value ? 'checked' : ''} ${disabledAttr}> ${this.escapeHtml(f.label)}</label>`;
+                input = `<label class="policy-checkbox-label"><input type="checkbox" id="policyField_${f.key}" data-preview-key="${f.key}" ${value ? 'checked' : ''} ${disabledAttr}> ${this.escapeHtml(f.label)}</label>`;
             } else {
-                input = `<input class="policy-input${disabledClass}" type="${f.type}" id="policyField_${f.key}" value="${this.escapeHtml(value)}" ${disabledAttr}>`;
+                input = `<input class="policy-input${disabledClass}" type="${f.type}" id="policyField_${f.key}" data-preview-key="${f.key}" value="${this.escapeHtml(value)}" ${disabledAttr}>`;
             }
             return `
                 <div class="policy-form-group" data-key="${f.key}">
@@ -2110,8 +2110,22 @@ class PolicyManager {
             if (el) {
                 el.addEventListener('input', () => this.updatePreview());
                 if (f.type === 'checkbox') el.addEventListener('change', () => this.updatePreview());
+                el.addEventListener('focus', () => this.highlightPreview(f.key));
+                el.addEventListener('blur', () => this.clearPreviewHighlight());
             }
         });
+    }
+
+    highlightPreview(key) {
+        if (!this.currentKey) return;
+        const tmpl = POLICY_TEMPLATES[this.currentKey];
+        const values = this.getFieldValues();
+        const html = this.buildHtml(tmpl, values, key);
+        document.getElementById('policyPreview').innerHTML = html;
+    }
+
+    clearPreviewHighlight() {
+        this.updatePreview();
     }
 
     getFieldValues() {
@@ -2129,22 +2143,30 @@ class PolicyManager {
         return values;
     }
 
-    buildHtml(tmpl, values) {
+    buildHtml(tmpl, values, activeKey) {
         let html = tmpl.template;
+
+        // Wrap each placeholder in a highlightable span keyed to its field key
+        tmpl.fields.forEach(f => {
+            const regex = new RegExp(`{{${f.key}}}`, 'g');
+            let val = values[f.key] || '';
+            if (typeof val === 'boolean') {
+                val = val ? 'はい' : 'いいえ';
+            } else {
+                val = this.escapeHtml(String(val));
+            }
+            const activeClass = f.key === activeKey ? ' policy-preview-active' : '';
+            html = html.replace(regex, `<span class="policy-preview-part${activeClass}" data-preview-key="${f.key}">${val}</span>`);
+        });
+
         if (values.NON_RETURNABLE_ITEMS) {
             const items = values.NON_RETURNABLE_ITEMS.split('\n').filter(s => s.trim()).map(s => `<li>${this.escapeHtml(s.trim())}</li>`).join('\n  ');
-            html = html.replace('{{NON_RETURNABLE_ITEMS}}', items);
+            const activeClass = activeKey === 'NON_RETURNABLE_ITEMS' ? ' policy-preview-active' : '';
+            html = html.replace('{{NON_RETURNABLE_ITEMS}}', `<span class="policy-preview-part${activeClass}" data-preview-key="NON_RETURNABLE_ITEMS"><ul>\n  ${items}\n</ul></span>`);
+        } else {
+            html = html.replace('{{NON_RETURNABLE_ITEMS}}', '');
         }
-        Object.keys(values).forEach(key => {
-            const regex = new RegExp(`{{${key}}}`, 'g');
-            let val = values[key];
-            if (typeof val === 'string') {
-                val = this.escapeHtml(val);
-            } else if (typeof val === 'boolean') {
-                val = val ? 'はい' : 'いいえ';
-            }
-            html = html.replace(regex, val);
-        });
+
         return html;
     }
 
@@ -2187,6 +2209,10 @@ class PolicyManager {
     approve() {
         const tmpl = POLICY_TEMPLATES[this.currentKey];
         const values = this.getFieldValues();
+        const emptyLabels = tmpl.fields.filter(f => !f.disabled && !values[f.key]).map(f => f.label);
+        if (emptyLabels.length > 0) {
+            if (!confirm(`未入力の項目があります：\n${emptyLabels.join('、')}\n\nこのままで承認しますか？`)) return;
+        }
         if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: {}, values: {} };
         this.data[tmpl.key].values = values;
         const revisionEl = document.getElementById('policyRevisionNote');
