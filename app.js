@@ -1938,11 +1938,11 @@ class ProductCSVGenerator {
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new ProductCSVGenerator();
-    if (document.getElementById('policyMain')) {
-        window.policyManager = new PolicyManager();
-    }
     if (document.getElementById('taskMenu')) {
         window.taskManager = new TaskManager();
+    }
+    if (document.getElementById('policyMain')) {
+        window.policyManager = new PolicyManager();
     }
 });
 
@@ -1953,8 +1953,7 @@ class PolicyManager {
     constructor() {
         this.currentKey = null;
         this.storageKey = 'policyManagerData';
-        this.loadData();
-        this.init();
+        this.loadData().then(() => this.init());
     }
 
     init() {
@@ -1990,8 +1989,18 @@ class PolicyManager {
         document.getElementById('policyApproveBtn').addEventListener('click', () => this.approve());
     }
 
-    loadData() {
+    async loadData() {
         this.data = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+        try {
+            const statuses = await getSharedPolicyStatuses();
+            Object.entries(statuses).forEach(([key, status]) => {
+                if (!this.data[key]) this.data[key] = { values: {}, revisionNote: '' };
+                this.data[key].status = status;
+            });
+            this.saveData();
+        } catch (error) {
+            console.warn('Shared policy statuses could not be loaded:', error);
+        }
     }
 
     saveData() {
@@ -2250,6 +2259,10 @@ class PolicyManager {
             action: '承認・HTML生成',
             itemName: tmpl.title,
             detail: `ファイル名: ${serverFilename}`,
+            policyStatus: {
+                key: tmpl.key,
+                ...this.data[tmpl.key].status
+            },
             saveToDrive: {
                 filename: serverFilename,
                 content: fullHtml,
@@ -2288,16 +2301,53 @@ class PolicyManager {
 // Default Google Apps Script config for email notifications.
 // After deploying the GAS web app, set the URL here so all users share it.
 const GAS_CONFIG = {
-    url: 'https://script.google.com/macros/s/AKfycbylwrpxSaN5hxMXOpPrU4jFlqQkeikQ16vRIr5y4WyhO4QZgMAgNb4CQ3L3r-conBqw2w/exec',
+    url: 'https://script.google.com/macros/s/AKfycbzvdLTQTGg1dfiAwth5Rd-LrxbopozyvCDONpj5or5MUhKYsO3zXOXVquzHwq4uubjG/exec',
     token: 'fullgram-portal-token-2026',
     toEmail: 'tamagon123@gmail.com'
 };
 const SETTINGS_PASSWORD = '0126';
 
-async function sendToGas(payload) {
+function getGasConnectionSettings() {
     const settings = (window.taskManager && window.taskManager.gasSettings) || {};
-    const url = settings.url || GAS_CONFIG.url;
-    const token = settings.token || GAS_CONFIG.token;
+    return {
+        url: settings.url || GAS_CONFIG.url,
+        token: settings.token || GAS_CONFIG.token
+    };
+}
+
+function getSharedPolicyStatuses() {
+    const { url, token } = getGasConnectionSettings();
+    if (!url) return Promise.resolve({});
+
+    return new Promise((resolve, reject) => {
+        const callback = `policyStatusCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const cleanup = () => {
+            clearTimeout(timeout);
+            delete window[callback];
+            script.remove();
+        };
+        const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Shared policy status request timed out'));
+        }, 10000);
+
+        window[callback] = (response) => {
+            cleanup();
+            if (response && response.success) resolve(response.statuses || {});
+            else reject(new Error(response?.error || 'Shared policy status request failed'));
+        };
+        script.onerror = () => {
+            cleanup();
+            reject(new Error('Shared policy status request failed'));
+        };
+        script.src = `${url}?action=getPolicyStatuses&token=${encodeURIComponent(token)}&callback=${callback}`;
+        document.head.appendChild(script);
+    });
+}
+
+async function sendToGas(payload) {
+    const { url, token } = getGasConnectionSettings();
     if (!url) return;
     try {
         await fetch(url, {

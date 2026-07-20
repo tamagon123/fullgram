@@ -16,6 +16,24 @@
 const GAS_TOKEN = 'fullgram-portal-token-2026';
 const DEFAULT_TO_EMAIL = 'tamagon123@gmail.com';
 const DRIVE_FOLDER_ID = '1y_i3qFdUqNQgPqLooP-sSVs8xXJ4XBhk';
+const POLICY_STATUS_SHEET_NAME = 'PolicyStatus';
+const POLICY_STATUS_SPREADSHEET_PROPERTY = 'POLICY_STATUS_SPREADSHEET_ID';
+
+function doGet(e) {
+  const parameter = e.parameter || {};
+  const payload = parameter.token === GAS_TOKEN && parameter.action === 'getPolicyStatuses'
+    ? { success: true, statuses: getPolicyStatuses() }
+    : { success: false, error: 'Invalid request' };
+  const callback = parameter.callback;
+
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(`${callback}(${JSON.stringify(payload)});`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return jsonResponse(payload);
+}
 
 function doPost(e) {
   Logger.log('doPost called');
@@ -38,6 +56,10 @@ function doPost(e) {
     if (data.token !== GAS_TOKEN) {
       lock.releaseLock();
       return jsonResponse({ success: false, error: 'Invalid token' });
+    }
+
+    if (data.policyStatus && data.policyStatus.key) {
+      savePolicyStatus(data.policyStatus);
     }
 
     if (data.saveToDrive && data.saveToDrive.filename && data.saveToDrive.content) {
@@ -69,6 +91,71 @@ function doPost(e) {
     lock.releaseLock();
     return jsonResponse({ success: false, error: error.toString() });
   }
+}
+
+function getPolicyStatusSpreadsheet() {
+  const properties = PropertiesService.getScriptProperties();
+  let spreadsheetId = properties.getProperty(POLICY_STATUS_SPREADSHEET_PROPERTY);
+
+  if (!spreadsheetId) {
+    const spreadsheet = SpreadsheetApp.create('fullgram Portal - Policy Approval Status');
+    spreadsheetId = spreadsheet.getId();
+    properties.setProperty(POLICY_STATUS_SPREADSHEET_PROPERTY, spreadsheetId);
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  DriveApp.getFileById(spreadsheetId).moveTo(folder);
+  return spreadsheet;
+}
+
+function getPolicyStatusSheet() {
+  const spreadsheet = getPolicyStatusSpreadsheet();
+  let sheet = spreadsheet.getSheetByName(POLICY_STATUS_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(POLICY_STATUS_SHEET_NAME);
+    sheet.appendRow(['key', 'approved', 'lastApproved', 'versions', 'updatedAt']);
+    sheet.setFrozenRows(1);
+  }
+
+  return sheet;
+}
+
+function savePolicyStatus(status) {
+  const sheet = getPolicyStatusSheet();
+  const values = sheet.getDataRange().getValues();
+  const row = [
+    status.key,
+    status.approved === true,
+    status.lastApproved || '',
+    Number(status.versions) || 0,
+    new Date().toISOString()
+  ];
+  const existingRowIndex = values.findIndex((value, index) => index > 0 && value[0] === status.key);
+
+  if (existingRowIndex === -1) {
+    sheet.appendRow(row);
+  } else {
+    sheet.getRange(existingRowIndex + 1, 1, 1, row.length).setValues([row]);
+  }
+}
+
+function getPolicyStatuses() {
+  const sheet = getPolicyStatusSheet();
+  const values = sheet.getDataRange().getValues();
+  const statuses = {};
+
+  values.slice(1).forEach(row => {
+    if (!row[0]) return;
+    statuses[row[0]] = {
+      approved: row[1] === true || row[1] === 'TRUE',
+      lastApproved: row[2] || null,
+      versions: Number(row[3]) || 0
+    };
+  });
+
+  return statuses;
 }
 
 function saveToDrive(filename, content, mimeType) {
