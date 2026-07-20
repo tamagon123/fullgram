@@ -2219,9 +2219,11 @@ class PolicyManager {
         const values = this.getFieldValues();
         const isEmpty = v => v === '' || v === null || v === undefined;
         const emptyLabels = tmpl.fields.filter(f => !f.disabled && isEmpty(values[f.key])).map(f => f.label);
-        if (emptyLabels.length > 0) {
-            if (!confirm(`未入力の項目があります：\n${emptyLabels.join('、')}\n\nこのままで承認しますか？`)) return;
-        }
+        const approvalMessage = emptyLabels.length > 0
+            ? `未入力の項目があります：\n${emptyLabels.join('、')}\n\nこのままで承認し、提出用サーバーへ送信しますか？`
+            : `「${tmpl.title}」を承認し、提出用サーバーへ送信しますか？`;
+        if (!confirm(approvalMessage)) return;
+
         if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: {}, values: {} };
         this.data[tmpl.key].values = values;
         const revisionEl = document.getElementById('policyRevisionNote');
@@ -2243,19 +2245,6 @@ class PolicyManager {
         const serverFilename = `${tmpl.filenamePrefix}${revisionSuffix}_v${version}_${timestamp}.html`;
         const localFilename = `${tmpl.filenamePrefix}_local${revisionSuffix}_v${version}_${timestamp}.html`;
 
-        const downloadLocal = confirm(`生成したHTMLは提出用サーバーにアップロードされます。\nローカルにもダウンロードしますか？`);
-        if (downloadLocal) {
-            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = localFilename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
         sendToGas({
             type: 'ポリシー',
             action: '承認・HTML生成',
@@ -2268,7 +2257,20 @@ class PolicyManager {
             }
         });
 
-        alert(`「${tmpl.title}」を承認しました。\n提出用サーバーにアップロードしました。`);
+        const downloadLocal = confirm(`提出用サーバーへの送信を開始しました。\nローカルにもダウンロードしますか？`);
+        if (downloadLocal) {
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = localFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        alert(`「${tmpl.title}」を承認しました。\n提出用サーバーへの送信を開始しました。`);
         this.showTaskList();
     }
 
