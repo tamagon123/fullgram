@@ -132,6 +132,26 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.google-account-notice {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 24px;
+    background: #fff8e1;
+    border-bottom: 1px solid #f0c36d;
+    color: #6b4b00;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.google-account-notice strong {
+    white-space: nowrap;
+}
+
 .container {
     max-width: 1280px;
     margin: 0 auto;
@@ -2093,4 +2113,124 @@ textarea.policy-input {
     border-radius: var(--radius-sm);
     font-size: 13px;
     cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .google-account-notice {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 12px;
+        font-size: 12px;
+        text-align: left;
+    }
+
+    .google-account-notice strong {
+        white-space: normal;
+    }
+
+    .top-menu-grid,
+    .policy-task-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .top-menu-card,
+    .policy-task-card,
+    .sku-rule-item,
+    .data-form,
+    .data-table-wrap,
+    .policy-form-column,
+    .policy-preview-column {
+        padding: 16px;
+    }
+
+    .page-back-header,
+    .policy-editor-header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .page-back-header .settings-btn {
+        margin-left: 0;
+    }
+
+    .policy-editor-header h2,
+    .policy-section h2 {
+        font-size: 1.25rem;
+    }
+
+    .policy-actions,
+    .sku-rule-actions,
+    .data-actions,
+    .modal-footer {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .policy-actions .btn,
+    .sku-rule-actions .btn,
+    .data-actions .btn,
+    .modal-footer .btn {
+        width: 100%;
+    }
+
+    .policy-input,
+    .sku-rule-correction input,
+    .sku-rule-overall textarea {
+        font-size: 16px;
+    }
+
+    .sku-rule-checks {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sku-rule-correction {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .sku-rule-header {
+        align-items: flex-start;
+    }
+
+    .data-table-wrap,
+    .measurement-table-wrapper,
+    #variantInventoryContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-manager-table,
+    .variant-inventory-table {
+        min-width: 560px;
+    }
+
+    .policy-preview-box {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .policy-preview-box table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .collection-tag-checkboxes {
+        gap: 8px;
+        max-height: 240px;
+    }
+
+    .collection-tag-label {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
 }

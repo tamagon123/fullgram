@@ -1983,7 +1983,7 @@ class PolicyManager {
         // 戻るボタン
         document.getElementById('csvBackBtn').addEventListener('click', () => this.showSection('top'));
         document.getElementById('taskBackBtn').addEventListener('click', () => this.showSection('top'));
-        document.getElementById('policyBackBtn').addEventListener('click', () => this.showSection('task'));
+        document.getElementById('policyBackBtn').addEventListener('click', () => this.showTaskList());
         document.getElementById('policyMenuBackBtn')?.addEventListener('click', () => this.showSection('task'));
 
         document.getElementById('policySaveDraftBtn').addEventListener('click', () => this.saveDraft());
@@ -2479,8 +2479,9 @@ class TaskManager {
                 if (saveToDriveType === 'brands') data = this.brands;
                 else if (saveToDriveType === 'tags') data = this.tags;
                 else if (saveToDriveType === 'collections') data = this.collections;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
                 body.saveToDrive = {
-                    filename: `${saveToDriveType}.json`,
+                    filename: `${saveToDriveType}_${timestamp}.json`,
                     content: JSON.stringify(data, null, 2),
                     mimeType: 'application/json'
                 };
