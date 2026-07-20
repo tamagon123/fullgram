@@ -1953,6 +1953,8 @@ class PolicyManager {
     constructor() {
         this.currentKey = null;
         this.storageKey = 'policyManagerData';
+        this.sharedStatuses = {};
+        this.statusSyncError = false;
         this.loadData().then(() => this.init());
     }
 
@@ -1987,24 +1989,43 @@ class PolicyManager {
 
         document.getElementById('policySaveDraftBtn').addEventListener('click', () => this.saveDraft());
         document.getElementById('policyApproveBtn').addEventListener('click', () => this.approve());
+        document.getElementById('policyStatusRetryBtn')?.addEventListener('click', () => this.retryStatusSync());
     }
 
     async loadData() {
         this.data = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+        Object.values(this.data).forEach(entry => {
+            if (entry && typeof entry === 'object') delete entry.status;
+        });
+        this.saveData();
+        await this.refreshSharedStatuses();
+    }
+
+    async refreshSharedStatuses() {
         try {
-            const statuses = await getSharedPolicyStatuses();
-            Object.entries(statuses).forEach(([key, status]) => {
-                if (!this.data[key]) this.data[key] = { values: {}, revisionNote: '' };
-                this.data[key].status = status;
-            });
-            this.saveData();
+            this.sharedStatuses = await getSharedPolicyStatuses();
+            this.statusSyncError = false;
         } catch (error) {
+            this.sharedStatuses = {};
+            this.statusSyncError = true;
             console.warn('Shared policy statuses could not be loaded:', error);
         }
     }
 
+    async retryStatusSync() {
+        const retryButton = document.getElementById('policyStatusRetryBtn');
+        if (retryButton) retryButton.disabled = true;
+        await this.refreshSharedStatuses();
+        if (retryButton) retryButton.disabled = false;
+        this.renderTaskList();
+    }
+
     saveData() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+        const localData = Object.fromEntries(Object.entries(this.data).map(([key, entry]) => {
+            const { status, ...draft } = entry || {};
+            return [key, draft];
+        }));
+        localStorage.setItem(this.storageKey, JSON.stringify(localData));
     }
 
     showSection(section) {
@@ -2032,6 +2053,7 @@ class PolicyManager {
         } else if (section === 'policy') {
             policyMain.style.display = 'block';
             this.showTaskList();
+            this.refreshSharedStatuses().then(() => this.renderTaskList());
         }
     }
 
@@ -2043,6 +2065,15 @@ class PolicyManager {
     }
 
     renderTaskList() {
+        const syncNotice = document.getElementById('policyStatusSyncNotice');
+        const syncMessage = document.getElementById('policyStatusSyncMessage');
+        if (syncNotice && syncMessage) {
+            syncNotice.style.display = this.statusSyncError ? 'block' : 'none';
+            syncMessage.textContent = this.statusSyncError
+                ? '承認状況を共有スプレッドシートから取得できません。共有フォルダにアクセスできるGoogleアカウントでログインしていることを確認してから、再試行してください。'
+                : '';
+        }
+
         const container = document.getElementById('policyTaskCards');
         container.innerHTML = Object.values(POLICY_TEMPLATES).map(t => {
             const status = this.getStatus(t.key);
@@ -2062,7 +2093,7 @@ class PolicyManager {
     }
 
     getStatus(key) {
-        return this.data[key]?.status || { approved: false, lastApproved: null, versions: 0 };
+        return this.sharedStatuses[key] || { approved: false, lastApproved: null, versions: 0 };
     }
 
     openEditor(key) {
@@ -2197,7 +2228,7 @@ class PolicyManager {
 
     saveDraft() {
         const tmpl = POLICY_TEMPLATES[this.currentKey];
-        if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: { approved: false }, values: {} };
+        if (!this.data[tmpl.key]) this.data[tmpl.key] = { values: {} };
         this.data[tmpl.key].values = this.getFieldValues();
         const revisionEl = document.getElementById('policyRevisionNote');
         this.data[tmpl.key].revisionNote = revisionEl ? revisionEl.value.trim() : '';
@@ -2214,7 +2245,7 @@ class PolicyManager {
         Object.keys(POLICY_TEMPLATES).forEach(key => {
             if (key === 'contact') return;
             const fieldKeys = POLICY_TEMPLATES[key].fields.map(f => f.key);
-            if (!this.data[key]) this.data[key] = { status: { approved: false }, values: {} };
+            if (!this.data[key]) this.data[key] = { values: {} };
             sharedKeys.forEach(sk => {
                 if (fieldKeys.includes(sk) && contactValues[sk] !== undefined) {
                     this.data[key].values[sk] = contactValues[sk];
@@ -2233,7 +2264,7 @@ class PolicyManager {
             : `「${tmpl.title}」を承認し、提出用サーバーへ送信しますか？`;
         if (!confirm(approvalMessage)) return;
 
-        if (!this.data[tmpl.key]) this.data[tmpl.key] = { status: {}, values: {} };
+        if (!this.data[tmpl.key]) this.data[tmpl.key] = { values: {} };
         this.data[tmpl.key].values = values;
         const revisionEl = document.getElementById('policyRevisionNote');
         const revisionNote = revisionEl ? revisionEl.value.trim() : '';
@@ -2241,9 +2272,10 @@ class PolicyManager {
         if (tmpl.key === 'contact') {
             this.syncContactValues();
         }
-        const version = (this.data[tmpl.key].status.versions || 0) + 1;
+        const version = (this.getStatus(tmpl.key).versions || 0) + 1;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        this.data[tmpl.key].status = { approved: true, lastApproved: new Date().toLocaleString('ja-JP'), versions: version };
+        const policyStatus = { approved: true, lastApproved: new Date().toLocaleString('ja-JP'), versions: version };
+        this.sharedStatuses[tmpl.key] = policyStatus;
         this.saveData();
 
         const html = this.buildHtml(tmpl, values);
@@ -2261,7 +2293,7 @@ class PolicyManager {
             detail: `ファイル名: ${serverFilename}`,
             policyStatus: {
                 key: tmpl.key,
-                ...this.data[tmpl.key].status
+                ...policyStatus
             },
             saveToDrive: {
                 filename: serverFilename,
