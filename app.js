@@ -2118,10 +2118,26 @@ class PolicyManager {
 
     highlightPreview(key) {
         if (!this.currentKey) return;
-        const tmpl = POLICY_TEMPLATES[this.currentKey];
-        const values = this.getFieldValues();
-        const html = this.buildHtml(tmpl, values, key);
-        document.getElementById('policyPreview').innerHTML = html;
+        this.updatePreview();
+        const value = this.getFieldValues()[key];
+        if (value === '' || value === null || value === undefined || typeof value === 'boolean') return;
+
+        const preview = document.getElementById('policyPreview');
+        const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        textNodes.forEach(node => {
+            const index = node.nodeValue.indexOf(value);
+            if (index === -1) return;
+            const fragment = document.createDocumentFragment();
+            fragment.append(document.createTextNode(node.nodeValue.slice(0, index)));
+            const highlight = document.createElement('span');
+            highlight.className = 'policy-preview-part policy-preview-active';
+            highlight.textContent = value;
+            fragment.append(highlight, document.createTextNode(node.nodeValue.slice(index + value.length)));
+            node.parentNode.replaceChild(fragment, node);
+        });
     }
 
     clearPreviewHighlight() {
@@ -2143,32 +2159,22 @@ class PolicyManager {
         return values;
     }
 
-    buildHtml(tmpl, values, activeKey) {
+    buildHtml(tmpl, values) {
         let html = tmpl.template;
-
-        // Wrap each scalar placeholder in a highlightable span keyed to its field key
-        tmpl.fields.forEach(f => {
-            if (f.key === 'NON_RETURNABLE_ITEMS') return;
-            const regex = new RegExp(`{{${f.key}}}`, 'g');
-            let val = values[f.key];
-            if (typeof val === 'boolean') {
-                val = val ? 'はい' : 'いいえ';
-            } else {
-                val = this.escapeHtml(String(val ?? ''));
-            }
-            const activeClass = f.key === activeKey ? ' policy-preview-active' : '';
-            html = html.replace(regex, `<span class="policy-preview-part${activeClass}" data-preview-key="${f.key}">${val}</span>`);
-        });
-
-        // Handle list placeholder separately so it is not double-wrapped
         if (values.NON_RETURNABLE_ITEMS) {
             const items = values.NON_RETURNABLE_ITEMS.split('\n').filter(s => s.trim()).map(s => `<li>${this.escapeHtml(s.trim())}</li>`).join('\n  ');
-            const activeClass = activeKey === 'NON_RETURNABLE_ITEMS' ? ' policy-preview-active' : '';
-            html = html.replace('{{NON_RETURNABLE_ITEMS}}', `<span class="policy-preview-part${activeClass}" data-preview-key="NON_RETURNABLE_ITEMS"><ul>\n  ${items}\n</ul></span>`);
-        } else {
-            html = html.replace('{{NON_RETURNABLE_ITEMS}}', '');
+            html = html.replace('{{NON_RETURNABLE_ITEMS}}', items);
         }
-
+        Object.keys(values).forEach(key => {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            let val = values[key];
+            if (typeof val === 'string') {
+                val = this.escapeHtml(val);
+            } else if (typeof val === 'boolean') {
+                val = val ? 'はい' : 'いいえ';
+            }
+            html = html.replace(regex, val);
+        });
         return html;
     }
 
