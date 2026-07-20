@@ -2306,6 +2306,21 @@ const GAS_CONFIG = {
     toEmail: 'tamagon123@gmail.com'
 };
 const SETTINGS_PASSWORD = '0126';
+const ACTIVITY_DEVICE_STORAGE_KEY = 'fullgramPortalActivityDeviceId';
+
+function getActivityLogContext() {
+    let deviceId = localStorage.getItem(ACTIVITY_DEVICE_STORAGE_KEY);
+    if (!deviceId) {
+        deviceId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem(ACTIVITY_DEVICE_STORAGE_KEY, deviceId);
+    }
+
+    return {
+        deviceId,
+        browser: navigator.userAgent,
+        sourceUrl: window.location.href
+    };
+}
 
 function getGasConnectionSettings() {
     const settings = (window.taskManager && window.taskManager.gasSettings) || {};
@@ -2354,7 +2369,7 @@ async function sendToGas(payload) {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...payload, token })
+            body: JSON.stringify({ ...payload, token, activityLog: getActivityLogContext() })
         });
     } catch (e) {
         console.error('GAS send failed:', e);
@@ -2524,7 +2539,8 @@ class TaskManager {
                 type,
                 action,
                 itemName,
-                detail
+                detail,
+                activityLog: getActivityLogContext()
             };
             if (saveToDriveType) {
                 let data;

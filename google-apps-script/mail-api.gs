@@ -17,6 +17,7 @@ const GAS_TOKEN = 'fullgram-portal-token-2026';
 const DEFAULT_TO_EMAIL = 'tamagon123@gmail.com';
 const DRIVE_FOLDER_ID = '1y_i3qFdUqNQgPqLooP-sSVs8xXJ4XBhk';
 const POLICY_STATUS_SHEET_NAME = 'PolicyStatus';
+const ACTIVITY_LOG_SHEET_NAME = 'ActivityLog';
 const POLICY_STATUS_SPREADSHEET_PROPERTY = 'POLICY_STATUS_SPREADSHEET_ID';
 
 function doGet(e) {
@@ -48,6 +49,7 @@ function doPost(e) {
 
   let driveResult = null;
   let driveError = null;
+  let policyStatusError = null;
   let data = {};
 
   try {
@@ -59,7 +61,20 @@ function doPost(e) {
     }
 
     if (data.policyStatus && data.policyStatus.key) {
-      savePolicyStatus(data.policyStatus);
+      try {
+        savePolicyStatus(data.policyStatus);
+      } catch (error) {
+        policyStatusError = error.toString();
+        Logger.log(`Policy status save failed: ${policyStatusError}`);
+      }
+    }
+
+    if (data.activityLog) {
+      try {
+        saveActivityLog(data.activityLog, data);
+      } catch (error) {
+        Logger.log(`Activity log save failed: ${error}`);
+      }
     }
 
     if (data.saveToDrive && data.saveToDrive.filename && data.saveToDrive.content) {
@@ -71,7 +86,7 @@ function doPost(e) {
     }
 
     const subject = `[fullgram Portal] ${data.type || 'データ'}の${data.action || '更新'}通知`;
-    const body = buildEmailBody(data, driveResult, driveError);
+    const body = buildEmailBody(data, driveResult, driveError, policyStatusError);
 
     GmailApp.sendEmail(
       data.to || DEFAULT_TO_EMAIL,
@@ -82,8 +97,8 @@ function doPost(e) {
 
     lock.releaseLock();
 
-    if (driveError) {
-      return jsonResponse({ success: false, error: driveError, drive: driveResult });
+    if (driveError || policyStatusError) {
+      return jsonResponse({ success: false, error: driveError || policyStatusError, drive: driveResult });
     }
 
     return jsonResponse({ success: true, drive: driveResult });
@@ -158,6 +173,33 @@ function getPolicyStatuses() {
   return statuses;
 }
 
+function getActivityLogSheet() {
+  const spreadsheet = getPolicyStatusSpreadsheet();
+  let sheet = spreadsheet.getSheetByName(ACTIVITY_LOG_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(ACTIVITY_LOG_SHEET_NAME);
+    sheet.appendRow(['timestamp', 'deviceId', 'browser', 'type', 'action', 'itemName', 'detail', 'sourceUrl']);
+    sheet.setFrozenRows(1);
+  }
+
+  return sheet;
+}
+
+function saveActivityLog(activityLog, data) {
+  const sheet = getActivityLogSheet();
+  sheet.appendRow([
+    new Date(),
+    activityLog.deviceId || '',
+    activityLog.browser || '',
+    data.type || '',
+    data.action || '',
+    data.itemName || '',
+    data.detail || '',
+    activityLog.sourceUrl || ''
+  ]);
+}
+
 function saveToDrive(filename, content, mimeType) {
   const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
   const type = mimeType || MimeType.PLAIN_TEXT;
@@ -173,7 +215,7 @@ function saveToDrive(filename, content, mimeType) {
   return { created: true, filename: filename, id: file.getId() };
 }
 
-function buildEmailBody(data, driveResult, driveError) {
+function buildEmailBody(data, driveResult, driveError, policyStatusError) {
   const lines = [
     'fullgram Portal Site のデータ登録が更新されました。',
     '',
@@ -204,6 +246,12 @@ function buildEmailBody(data, driveResult, driveError) {
   if (driveError) {
     lines.push('【Google Drive 自動保存エラー】');
     lines.push(driveError);
+    lines.push('');
+  }
+
+  if (policyStatusError) {
+    lines.push('【ポリシー承認状態の保存エラー】');
+    lines.push(policyStatusError);
     lines.push('');
   }
 
